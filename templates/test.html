@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Test ABX - Comparación{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="test-card">
+            <h2 id="progress-text" class="progress-text">
+                Comparación {{ current }} de {{ total }}
+            </h2>
+
+            <!-- Barra de progreso -->
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill" 
+                     style="width: {{ (current / total * 100) }}%"></div>
+            </div>
+
+            <div class="instructions">
+                <p>Escucha los tres fragmentos de audio y determina cuál de los estímulos A o B es igual al estímulo X.</p>
+            </div>
+
+            <!-- Controles de selección de estímulo -->
+            <div class="audio-controls">
+                <button id="btn-a" class="btn-audio">
+                    Audio A
+                </button>
+                <button id="btn-x" class="btn-audio">
+                    Audio X
+                </button>
+                <button id="btn-b" class="btn-audio">
+                    Audio B
+                </button>
+            </div>
+
+            <!-- Pregunta y opciones de respuesta -->
+            <div class="question-section">
+                <h3>¿Cuál de los audios (A o B) corresponde al audio X?</h3>
+                <div class="response-options">
+                    <button id="response-a" class="btn-secondary">
+                        Audio A = X
+                    </button>
+                    <button id="response-tie" class="btn-secondary">
+                        No logro identificarlo
+                    </button>
+                    <button id="response-b" class="btn-secondary">
+                        Audio B = X
+                    </button>
+                </div>
+                <!-- Mensaje de confirmación -->
+                <div id="response-confirmation" class="response-confirmation hidden">
+                    <div class="confirmation-message">
+                        <span id="confirmation-text">Respuesta registrada</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instrucciones adicionales -->
+            <div class="help-text">
+                <p><small>
+                    <strong>Cómo usar:</strong> 
+                    <br>• Para reproducir A, B o X, simplemente presiona el botón que indica su nombre.
+                    <br>• Usa los botones para cambiar entre estímulos sin interrumpir la reproducción.
+                    <br>• Para volver a reproducir el audio, vuelve a presionar el botón que está presionado.
+                </small></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pasar datos de la comparación actual al JavaScript -->
+    <script>
+        window.comparisonData = {
+            stimulus_a: '{{ comparison.stimulus_a }}',
+            stimulus_b: '{{ comparison.stimulus_b }}',
+            stimulus_x: '{{ comparison.stimulus_x }}'
+        };
+    </script>
+    <script src="{{ url_for('static', path='js/abx_test.js') }}"></script>
+{% endblock %}

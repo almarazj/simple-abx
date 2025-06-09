@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Test ABX - Evaluación Auditiva{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- CSS personalizado -->
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+
+    <!-- CSS adicional por página -->
+    {% block additional_css %}{% endblock %}
+
+    <!-- Meta tags adicionales -->
+    <meta name="description" content="Test ABX para evaluación de calidad auditiva">
+    <meta name="author" content="ABX Test System">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', path='images/favicon.ico') }}">
+</head>
+<body>
+    <!-- Header opcional -->
+    {% block header %}
+    <header class="main-header">
+        <div class="header-container">
+            <h1 class="header-title">
+                <a href="{{ url_for('welcome') }}">Test ABX</a>
+            </h1>
+            
+            <div class="header-controls">
+                {% block navigation %}
+                <!-- Navegación adicional se puede agregar en páginas específicas -->
+                {% endblock %}
+                
+                <button class="theme-toggle" id="theme-toggle" title="Cambiar tema">
+                    <span class="theme-icon"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+    {% endblock %}
+    
+    <!-- Contenido principal -->
+    <main class="main-content">
+        {% block content %}
+        <!-- El contenido específico de cada página va aquí -->
+        {% endblock %}
+    </main>
+    
+    <!-- Footer opcional -->
+    {% block footer %}
+    <footer class="main-footer">
+        <div class="footer-container">
+            <p>&copy; 2024 Test ABX - Evaluación de Calidad Auditiva</p>
+            {% if config.DEBUG %}
+            <p><small>Modo desarrollo activo</small></p>
+            {% endif %}
+        </div>
+    </footer>
+    {% endblock %}
+    
+    <!-- Scripts base -->
+    <script>
+        // Configuración global
+        window.ABXConfig = {
+            debug: {{ config.DEBUG|lower }},
+            baseUrl: "{{ request.url_root }}",
+            staticUrl: "{{ url_for('static', path='') }}"
+        };
+        
+        // Función global para mostrar mensajes
+        window.showMessage = function(message, type = 'info') {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            // Aquí se puede agregar un sistema de notificaciones más sofisticado
+        };
+        
+        // Manejo global de errores
+        window.addEventListener('error', function(e) {
+            if (window.ABXConfig.debug) {
+                console.error('Error global:', e.error);
+            }
+        });
+    </script>
+     <!-- JavaScript para cambio de tema -->
+    <script src="{{ url_for('static', path='js/theme.js') }}"></script>
+
+    <!-- JavaScript adicional por página -->
+    {% block additional_js %}{% endblock %}
+    
+    <!-- Scripts principales -->
+    {% block scripts %}{% endblock %}
+
+</body>
+</html>

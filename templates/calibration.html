@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Test ABX - Calibración{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="calibration-card">
+            <h2>Calibración de Volumen</h2>
+
+            <div class="calibration-info">
+                <ul>
+                    <li>Reproduce el audio de calibración usando el botón de abajo</li>
+                    <li>Ajusta el volumen a un nivel cómodo pero audible</li>
+                    <li>Una vez ajustado, <strong>mantén este volumen fijo durante todo el test</strong></li>
+                </ul>
+            </div>
+
+            <div class="audio-controls">
+                <button id="play-calibration" class="btn-audio">
+                    Reproducir Audio de Calibración
+                </button>
+            </div>
+
+            <div class="calibration-info">
+                <p><strong>Recomendaciones adicionales:</strong></p>
+                <ul>
+                    <li>Usa auriculares de buena calidad si es posible</li>
+                    <li>Ubícate en un lugar silencioso</li>
+                </ul>
+            </div>
+
+            <div class="button-group">
+                <button id="start-test-btn" class="btn-primary">
+                    Comenzar Test ABX
+                </button>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', path='js/abx_test.js') }}"></script>
+{% endblock %}

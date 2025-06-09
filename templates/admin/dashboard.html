@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Administración - ABX Test{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-cogs me-2"></i>Administración</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="/admin/dashboard" class="list-group-item list-group-item-action">
+                        <i class="fas fa-chart-pie me-2"></i>Dashboard
+                    </a>
+                    <a href="/admin/results" class="list-group-item list-group-item-action">
+                        <i class="fas fa-table me-2"></i>Resultados
+                    </a>
+                    <a href="/admin/export" class="list-group-item list-group-item-action">
+                        <i class="fas fa-download me-2"></i>Exportar datos
+                    </a>
+                    <a href="/admin/config" class="list-group-item list-group-item-action">
+                        <i class="fas fa-sliders-h me-2"></i>Configuración
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="row">
+                <!-- Estadísticas principales -->
+                <div class="col-md-3 mb-4">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Tests</h6>
+                                    <h2>{{ stats.total_tests }}</h2>
+                                </div>
+                                <i class="fas fa-user-check fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 mb-4">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Precisión Promedio</h6>
+                                    <h2>{{ "%.1f"|format(stats.avg_accuracy or 0) }}%</h2>
+                                </div>
+                                <i class="fas fa-bullseye fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 mb-4">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Tiempo Promedio</h6>
+                                    <h2>{{ "%.0f"|format(stats.avg_response_time or 0) }}ms</h2>
+                                </div>
+                                <i class="fas fa-clock fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 mb-4">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Tests Totales</h6>
+                                    <h2>{{ stats.total_tests or 0 }}</h2>
+                                </div>
+                                <i class="fas fa-calendar-day fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Gráficos y datos -->
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-chart-line me-2"></i>Precisión por día</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="accuracyChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-chart-pie me-2"></i>Distribución de respuestas</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="responseChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Últimos resultados -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list-alt me-2"></i>Últimos resultados</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Usuario ID</th>
+                                    <th>Precisión</th>
+                                    <th>Tiempo Promedio</th>
+                                    <th>Experiencia</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for result in recent_results %}
+                                <tr>
+                                    <td>{{ result.start_time[:10] }}</td>
+                                    <td><code>{{ result.user_id[:8] }}</code></td>
+                                    <td>
+                                        <span class="badge bg-{% if result.accuracy >= 80 %}success{% elif result.accuracy >= 60 %}warning{% else %}danger{% endif %}">
+                                            {{ "%.1f"|format(result.accuracy) }}%
+                                        </span>
+                                    </td>
+                                    <td>{{ "%.0f"|format(result.avg_response_time) }}ms</td>
+                                    <td>{{ result.participant_info.audio_experience }}</td>
+                                    <td>
+                                        <a href="/admin/result/{{ result._id }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Datos para los gráficos
+const accuracyData = {{ accuracy_data | tojson }};
+const responseData = {{ response_data | tojson }};
+
+// Configurar gráfico de precisión
+const accuracyCtx = document.getElementById('accuracyChart').getContext('2d');
+new Chart(accuracyCtx, {
+    type: 'line',
+    data: {
+        labels: accuracyData.labels,
+        datasets: [{
+            label: 'Precisión promedio (%)',
+            data: accuracyData.values,
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100
+            }
+        }
+    }
+});
+
+// Configurar gráfico de respuestas
+const responseCtx = document.getElementById('responseChart').getContext('2d');
+new Chart(responseCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Correctas', 'Incorrectas', 'Empates'],
+        datasets: [{
+            data: [responseData.correct, responseData.incorrect, responseData.ties],
+            backgroundColor: ['#28a745', '#dc3545', '#ffc107']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+</script>
+{% endblock %}
