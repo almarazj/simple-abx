@@ -44,7 +44,6 @@ logs/
 *.db
 
 # Audio files
-*.wav
 
 # Uploads
 uploads/
