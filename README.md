@@ -17,8 +17,8 @@ A comprehensive FastAPI-based web application for conducting ABX subjective audi
 
 ```bash
 # Clone the repository
-git clone <repository-url> subjective-test-flask
-cd subjective-test-flask
+git clone https://github.com/almarazj/simple-abx/
+cd simple-abx
 
 # Build and run with Docker
 docker-compose up --build
@@ -40,16 +40,16 @@ subjective-test-flask/
 ├── requirements.txt        # Python dependencies
 ├── Dockerfile              # Docker build file
 ├── docker-compose.yml      # Docker Compose setup (app + MySQL)
-├── .env                    # Environment variables (not committed)
+├── .env                    # Environment variables
 ├── .env.example            # Example env file
 ├── README.md
-├── logs/                   # Log files (e.g., abx_test.log)
-├── scripts/                # Utility scripts (e.g., wait-for-db.sh)
+├── logs/                   # Log files
+├── scripts/                # Utility scripts
 ├── app/
 │   ├── core/               # Core app logic (config, logging, app factory)
 │   ├── database/           # Database models, session, and init logic
 │   ├── models/             # Pydantic schemas, enums
-│   ├── utils/              # Utility functions (test config, audio utils)
+│   ├── utils/              # Utility functions
 │   └── web/                # Web routes (FastAPI)
 ├── static/                 # Static files (audio, js, css, images)
 ├── templates/              # Jinja2 templates (web UI)
