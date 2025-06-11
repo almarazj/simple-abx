@@ -1,12 +1,9 @@
-import os
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from google.cloud import firestore
 from app.core.config import settings
 
-engine = create_async_engine(settings.DATABASE_URL, echo=True, future=True)
-SessionLocal = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
-Base = declarative_base()
+# Inicializar cliente Firestore
+firestore_client = firestore.Client(project=settings.GOOGLE_PROJECT_ID)
 
-async def get_db():
-    async with SessionLocal() as db:
-        yield db
+# Obtener la colección Firestore
+def get_firestore_collection():
+    return firestore_client.collection(settings.FIRESTORE_COLLECTION)

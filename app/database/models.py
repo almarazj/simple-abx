@@ -1,17 +1,14 @@
-from datetime import datetime
-from sqlalchemy.ext.mutable import MutableList
-from sqlalchemy import Column, Integer, String, Float, DateTime
-from sqlalchemy.types import JSON
-from app.database.session import Base
+# Ejemplo de esquema para Firestore (puedes adaptar según tus necesidades)
+class TestResult:
+    def __init__(self, user_id, participant_info, start_time, end_time, responses, test_config, statistics, created_at):
+        self.user_id = user_id
+        self.participant_info = participant_info
+        self.start_time = start_time
+        self.end_time = end_time
+        self.responses = responses
+        self.test_config = test_config
+        self.statistics = statistics
+        self.created_at = created_at
 
-class TestResult(Base):
-    __tablename__ = "test_results"
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(String(255), index=True)    
-    participant_info = Column(JSON)
-    start_time = Column(DateTime, default=datetime.utcnow)
-    end_time = Column(DateTime, nullable=True)
-    responses = Column(MutableList.as_mutable(JSON), default=list)
-    test_config = Column(JSON)
-    statistics = Column(JSON)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    def to_dict(self):
+        return self.__dict__

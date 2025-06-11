@@ -7,7 +7,7 @@ from app.core.logging import setup_logging
 from app.core.exceptions import setup_exception_handlers
 from app.web.web import web_router
 
-def create_app(lifespan=None) -> FastAPI:
+def create_app() -> FastAPI:
     """Factory para crear la aplicación FastAPI"""
     
     # Crear aplicación
@@ -18,7 +18,6 @@ def create_app(lifespan=None) -> FastAPI:
         debug=settings.DEBUG,
         docs_url="/docs" if settings.DEBUG else None,
         redoc_url="/redoc" if settings.DEBUG else None,
-        lifespan=lifespan,  # <-- Agregado aquí
     )
     
     # Configurar logging

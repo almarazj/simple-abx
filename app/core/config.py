@@ -4,20 +4,15 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     """Configuración de la aplicación usando Pydantic Settings"""
-    FASTAPI_ENV: str = os.getenv("FASTAPI_ENV")
-    APP_NAME: str = os.getenv("APP_NAME")
-    VERSION: str = os.getenv("VERSION")    
-    
-    DB_USER: str = os.getenv("DB_USER")
-    DB_PASSWORD: str = os.getenv("DB_PASSWORD")
-    DB_NAME: str = os.getenv("DB_NAME")
-    DB_HOST: str = os.getenv("DB_HOST")
-    DB_PORT: str = os.getenv("DB_PORT")
-    
-    DATABASE_URL: str = f"mysql+aiomysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    
-    HOST: str = os.getenv("HOST")
-    PORT: int = os.getenv("PORT")
+    APP_NAME: str = "Test Application"
+    VERSION: str = "0.1.0"
+
+    # Firestore
+    GOOGLE_PROJECT_ID: str = "simple-abx"
+    FIRESTORE_COLLECTION: str = "test_results"
+
+    HOST: str = "0.0.0.0"
+    PORT: int = 8080
     
     # Archivos
     STATIC_FILES_DIR: str = "static"
@@ -54,7 +49,7 @@ class TestingConfig(Settings):
 
 def get_settings() -> Settings:
     """Obtener configuración basada en el entorno"""
-    env = os.getenv('FASTAPI_ENV')
+    env = "development"
     
     if env == 'production':
         return ProductionConfig()
