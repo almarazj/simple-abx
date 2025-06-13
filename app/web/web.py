@@ -122,7 +122,9 @@ async def submit_response(
     if current >= len(comparisons):
         return JSONResponse({
             "status": "completed",
-            "redirect": f"/results?user_id={user_id}"
+            "redirect": f"/results?user_id={user_id}",
+            "current": current,
+            "total": len(comparisons)
         })
     return JSONResponse({
         "status": "continue",

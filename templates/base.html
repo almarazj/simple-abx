@@ -44,10 +44,9 @@
                         tabindex="0"
                         data-bs-toggle="popover"
                         data-bs-trigger="hover focus"
-                        data-bs-placement="bottom"
-                        title="Información"
+                        data-bs-placement="auto"
                         data-bs-content="Este test forma parte de una investigación sobre la generación de reverberación artificial en audio. 
-                        En particular, se estudia el uso de <em>velvet noise</em> un tipo de ruido compuesto por impulsos dispersos y de baja densidad, que permite obtener reverberaciones de alta calidad con menor carga computacional. 
+                        En particular, se estudia el uso de <em>velvet noise</em>, un tipo de ruido compuesto por impulsos dispersos y de baja densidad, que permite obtener reverberaciones de alta calidad con menor carga computacional. 
                         Los resultados de este test ayudarán a evaluar cómo se percibe este tipo de procesamiento en comparación con métodos tradicionales."
                         aria-label="Información sobre el sitio">
                     <i class="fas fa-question-circle"></i>
@@ -71,9 +70,12 @@
     {% block footer %}
     <footer class="main-footer">
         <div class="footer-container">
-            <p>&copy; 2025 Test ABX - Evaluación de percepción subjetiva</p>
-            {% if config.DEBUG %}
-            {% endif %}
+            <p>&copy; 2025 Test ABX - Evaluación de percepción subjetiva </p>
+            <p>
+                <a href="https://opensource.org/licenses/MIT" target="_blank" rel="license noopener">
+                    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="Licencia MIT" style="height: 20px;">
+                </a>
+            </p>
         </div>
     </footer>
     {% endblock %}
@@ -99,12 +101,43 @@
                 console.error('Error global:', e.error);
             }
         });
+
+        // --- ADVERTENCIA DE PROGRESO DEL TEST ---
+        document.addEventListener('DOMContentLoaded', function() {
+            // Detecta si estamos en la página del test
+            var isTestPage = document.querySelector('.test-card') !== null;
+            var testFinished = false;
+            // El frontend debe poner window.testFinished = true al terminar
+            window.testFinished = false;
+            // Intercepta el cierre de pestaña/navegador
+            if (isTestPage) {
+                window.addEventListener('beforeunload', function(e) {
+                    if (!window.testFinished) {
+                        e.preventDefault();
+                        e.returnValue = '';
+                        return '';
+                    }
+                });
+                // Intercepta click en el título
+                var titleLink = document.querySelector('.header-title a');
+                if (titleLink) {
+                    titleLink.addEventListener('click', function(e) {
+                        if (!window.testFinished) {
+                            var confirmLeave = confirm('¿Seguro que quieres salir? Se perderá el progreso del test.');
+                            if (!confirmLeave) {
+                                e.preventDefault();
+                            }
+                        }
+                    });
+                }
+            }
+        });
     </script>
      <!-- JavaScript para cambio de tema -->
     <script src="{{ url_for('static', path='js/theme.js') }}"></script>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

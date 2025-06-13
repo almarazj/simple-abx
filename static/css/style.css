@@ -170,6 +170,10 @@ body {
     outline: none;
 }
 
+.popover .popover-body {
+  text-align: justify;
+}
+
 .main-footer {
     background: var(--bg-footer);
     color: var(--text-footer);

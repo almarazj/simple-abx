@@ -118,6 +118,11 @@ class ABXAudioController {
             this.resetPlayback();
             this.isPlaying = false;
             this.updateButtonStates();
+            // Limpia la clase de todos los botones (por si acaso)
+            ['btn-a', 'btn-b', 'btn-x'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.classList.remove('current-stimulus');
+            });
             return;
         }
 
@@ -172,13 +177,17 @@ class ABXAudioController {
         this.stopAllSources();
         this.audioOffset = 0;
         this.currentStimulus = null; // No default selection
-        
         // Reset gains - all should be silent initially
         if (this.gainNodes) {
             Object.keys(this.gainNodes).forEach(stimulus => {
                 this.gainNodes[stimulus].gain.value = 0;
             });
         }
+        // Limpia la clase de todos los botones
+        ['btn-a', 'btn-b', 'btn-x'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) btn.classList.remove('current-stimulus');
+        });
     }
 
     setVolume(volume) {
@@ -237,12 +246,12 @@ class ABXAudioController {
                 this.showResponseConfirmation(response, data.current || 1, data.total || 1);
                 setTimeout(() => {
                     window.location.href = data.redirect;
-                }, 1000);
+                }, 500);
             } else if (data.status === "continue") {
                 this.showResponseConfirmation(response, data.current, data.total);
                 setTimeout(() => {
                     this.loadNextComparison(data.next_comparison, data.current, data.total);
-                }, 1000);
+                }, 500);
             }
         })
         .catch(error => {
@@ -251,7 +260,7 @@ class ABXAudioController {
             this.hideResponseConfirmation();
             setTimeout(() => {
                 this.responseTimeoutActive = false;
-            }, 1000);
+            }, 500);
         });
     }
 
@@ -295,7 +304,7 @@ class ABXAudioController {
                     progressFill.style.width = percentage + '%';
                     progressText.textContent = `Comparación ${current} de ${total}`;
                 }
-            }, 300); // Wait for button fade out
+            }, 200); // Wait for button fade out
         }
     }
 
@@ -324,20 +333,24 @@ class ABXAudioController {
                         if (btn) btn.disabled = false;
                     });
                 }, 50); // Small delay for smooth transition
-            }, 300); // Wait for confirmation fade out
+            }, 200); // Wait for confirmation fade out
         }
     }
 
     async loadNextComparison(comparison, current, total) {
         await this.loadAudioFiles(comparison.stimulus_a, comparison.stimulus_b, comparison.stimulus_x);
         // El avance de barra y texto ahora ocurre en showResponseConfirmation
-        // Keep confirmation message visible for exactly 1000ms, then show buttons again
+        // Limpia la clase de todos los botones al cargar la nueva comparación
+        ['btn-a', 'btn-b', 'btn-x'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) btn.classList.remove('current-stimulus');
+        });
         setTimeout(() => {
             // Hide confirmation and show response buttons again
             this.hideResponseConfirmation();
             // Clear response timeout to allow new responses
             this.responseTimeoutActive = false;
-        }, 1000);
+        }, 500);
     }
 
     setupEventListeners() {
