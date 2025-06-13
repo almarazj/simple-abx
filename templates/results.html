@@ -8,7 +8,7 @@
             <h2>¡Gracias por participar!</h2>
             
             <div class="instructions">
-                <p>Has completado exitosamente el test ABX. Aquí tienes un resumen de tus resultados:</p>
+                <p>Muchas gracias por tomarte el tiempo de realizar este test. Este es un resumen de tus resultados:</p>
             </div>
 
             <!-- Estadísticas del test -->
@@ -29,55 +29,19 @@
                 </div>
             </div>
 
-            <!-- Interpretación de resultados -->
-            <div class="results-interpretation">
-                <h3>Interpretación de Resultados</h3>
-                
-                {% if stats.accuracy_percentage >= 80 %}
-                <div class="result-excellent">
-                    <p><strong>¡Excelente!</strong> Tu precisión indica una muy buena capacidad de discriminación auditiva. 
-                    Pudiste identificar correctamente la mayoría de las diferencias entre los estímulos.</p>
-                </div>
-                {% elif stats.accuracy_percentage >= 60 %}
-                <div class="result-good">
-                    <p><strong>Buen desempeño.</strong> Tu precisión muestra una buena capacidad de discriminación auditiva. 
-                    Algunas diferencias pueden haber sido muy sutiles.</p>
-                </div>
-                {% elif stats.accuracy_percentage >= 40 %}
-                <div class="result-average">
-                    <p><strong>Desempeño promedio.</strong> Algunas comparaciones fueron más desafiantes. 
-                    Esto puede deberse a diferencias muy sutiles entre los estímulos o condiciones de escucha.</p>
-                </div>
-                {% else %}
-                <div class="result-challenging">
-                    <p><strong>Test desafiante.</strong> Las diferencias entre los estímulos fueron muy sutiles. 
-                    Esto es común en tests de alta exigencia auditiva.</p>
-                </div>
-                {% endif %}
-            </div>
-
             <!-- Información adicional -->
             <div class="additional-info">
                 <h3>Información del Test</h3>
-                <p>Este test ABX evalúa la capacidad de discriminación auditiva comparando diferentes procesamentos 
-                o calidades de audio. Los resultados contribuyen a la investigación en percepción auditiva y 
-                calidad de audio.</p>
-                
-                <p>El puntaje aleatorio esperado sería del 33.3% (considerando la opción "No logro identificarlo"), 
-                por lo que cualquier resultado significativamente superior indica una genuine capacidad de discriminación.</p>
+                <p>Este test forma parte de una investigación sobre la generación de reverberación artificial en audio. 
+                En particular, se estudia el uso de <em>velvet noise</em>, un tipo de ruido compuesto por impulsos dispersos y de baja densidad, que permite obtener reverberaciones de alta calidad con menor carga computacional. 
+                Los resultados de este test ayudarán a evaluar cómo se percibe este tipo de procesamiento en comparación con métodos tradicionales.</p>
             </div>
 
             <!-- Botones de acción -->
             <div class="button-group">
-                <a href="/" class="btn-primary">Realizar Otro Test</a>
-                <button onclick="window.print()" class="btn-secondary">Imprimir Resultados</button>
-            </div>
-
-            <!-- Agradecimiento final -->
-            <div class="thank-you">
-                <p><strong>¡Muchas gracias por tu participación!</strong></p>
-                <p>Tus respuestas son valiosas para nuestro estudio y han sido guardadas de forma anónima.</p>
+                <button id="share-btn" class="btn-primary" type="button">Compartir el Test</button>
             </div>
         </div>
     </div>
+    <script src="{{ url_for('static', path='js/abx_test.js') }}"></script>
 {% endblock %}

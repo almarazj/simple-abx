@@ -42,7 +42,7 @@ logs/
 
 # Database
 *.db
-
+/credentials.json
 # Audio files
 
 # Uploads

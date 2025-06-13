@@ -491,3 +491,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const shareBtn = document.getElementById('share-btn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', async function() {
+            const shareData = {
+                title: 'Test ABX',
+                text: 'Ayúdame completando este test de percepción auditiva! (duración máx: 10 min):',
+                url: window.location.origin + '/'
+            };
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                } catch (err) {
+                    // Usuario canceló o error
+                }
+            } else {
+                // Copia mensaje + enlace al portapapeles
+                const textToCopy = `${shareData.text}\n${shareData.url}`;
+                try {
+                    await navigator.clipboard.writeText(textToCopy);
+                    alert('¡Enlace copiados al portapapeles!');
+                } catch (err) {
+                    alert('No se pudo copiar el mensaje. Copia manualmente:\n' + textToCopy);
+                }
+            }
+        });
+    }
+});

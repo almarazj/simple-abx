@@ -1,5 +1,4 @@
 # app/core/config.py
-import os
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
@@ -8,6 +7,7 @@ class Settings(BaseSettings):
     VERSION: str = "0.1.0"
 
     # Firestore
+    GOOGLE_APPLICATION_CREDENTIALS: str = "./credentials.json"
     GOOGLE_PROJECT_ID: str = "simple-abx"
     FIRESTORE_COLLECTION: str = "test_results"
 

@@ -1,7 +1,7 @@
 # app/core/app_factory.py
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.core.exceptions import setup_exception_handlers
@@ -26,6 +26,7 @@ def create_app() -> FastAPI:
     # Configurar archivos estáticos
     app.mount("/static", StaticFiles(directory=settings.STATIC_FILES_DIR), name="static")
     
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
     # Registrar routers
     app.include_router(web_router)
     

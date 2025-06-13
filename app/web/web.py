@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, Body, status
+from fastapi import APIRouter, Request, Depends, Body, status, BackgroundTasks
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from app.core.config import settings
@@ -13,9 +13,12 @@ from datetime import datetime
 web_router = APIRouter()
 templates = Jinja2Templates(directory=settings.TEMPLATES_DIR)
 
-
 def get_templates() -> Jinja2Templates:
     return templates
+
+
+def save_response_background(collection, user_id, test_result):
+    collection.document(user_id).set(test_result)
 
 
 @web_router.get("/", response_class=HTMLResponse)
@@ -42,6 +45,7 @@ def calibration(request: Request):
 async def participant_info(
     request: Request,
     form: ParticipantInfoCreate = Depends(ParticipantInfoCreate.as_form),
+    background_tasks: BackgroundTasks = None
 ):
     user_id = str(uuid.uuid4())
     test_result = TestResult(
@@ -55,12 +59,13 @@ async def participant_info(
         statistics={}
     )
     collection = get_firestore_collection()
-    collection.document(user_id).set(test_result.to_dict())
+    result = test_result.to_dict()
+    background_tasks.add_task(save_response_background, collection, user_id, result)
     return RedirectResponse(url=f"/calibration?user_id={user_id}", status_code=303)
 
 
 @web_router.get("/test", response_class=HTMLResponse)
-async def test(request: Request):
+async def test(request: Request, background_tasks: BackgroundTasks = None):
     user_id = request.query_params.get("user_id")
     collection = get_firestore_collection()
     doc = collection.document(user_id).get()
@@ -72,7 +77,7 @@ async def test(request: Request):
         if not test_result:
             test_result = TestResult(user_id=user_id, test_config={}, responses=[], participant_info={}).to_dict()
         test_result["test_config"] = {"comparisons": comparisons}
-        collection.document(user_id).set(test_result)
+        background_tasks.add_task(save_response_background, collection, user_id, test_result)
     else:
         comparisons = test_result["test_config"].get("comparisons", [])
 
@@ -89,7 +94,8 @@ async def test(request: Request):
 @web_router.post("/submit_response")
 async def submit_response(
     request: Request,
-    data: dict = Body(...)
+    data: dict = Body(...),
+    background_tasks: BackgroundTasks = None
 ):
     user_id = data.get("user_id")
     response = data.get("response")
@@ -111,7 +117,7 @@ async def submit_response(
         "response": response,
         "correct": correct
     })
-    collection.document(user_id).set(test_result)
+    background_tasks.add_task(save_response_background, collection, user_id, test_result)
     current += 1
     if current >= len(comparisons):
         return JSONResponse({
