@@ -16,6 +16,7 @@
     --border-secondary: #e9ecef;
     --border-header: rgba(0, 0, 0, 0.1);
     --accent-primary: #2c2c2c;
+    --options-hover: #2c2c2c;
     --accent-primary-hover: #393e59;
     --bg-audio-button: #7ad358;
     --accent-success: #28a745;
@@ -44,6 +45,7 @@
     --border-secondary: #333;
     --border-header: rgba(255, 255, 255, 0.1);
     --accent-primary: #ffffff;
+    --options-hover: #404040;
     --accent-primary-hover: #6d28d9;
     --accent-success: #10b981;
     --shadow-primary: rgba(0, 0, 0, 0.3);
@@ -126,9 +128,10 @@ body {
     display: flex;
     align-items: center;
     height: 40px;
+    gap: 20px;
 }
 
-.theme-toggle {
+.theme-toggle, .info-toggle{
     background: transparent;
     border: none;
     margin: 0;
@@ -138,6 +141,7 @@ body {
     justify-content: center;
     cursor: pointer;
     line-height: 0;
+    font-family: inherit;
 }
 .theme-toggle:focus { outline: none; }
 .theme-toggle:hover .theme-icon .material-icons { transform: rotate(180deg); }
@@ -147,6 +151,23 @@ body {
     line-height: 1;
     vertical-align: middle;
     transition: transform 0.3s;
+}
+.info-toggle i {
+    font-size: 18px;
+    color: var(--theme-icon, #666);
+    vertical-align: middle;
+}
+
+/* Hover y focus */
+.info-toggle:hover i,
+.info-toggle:focus i {
+    color: var(--theme-icon, #007bff);
+    transform: scale(1.1);
+}
+
+/* Para accesibilidad */
+.info-toggle:focus {
+    outline: none;
 }
 
 .main-footer {
@@ -274,7 +295,7 @@ h3 {
     transform: translateY(2px);
     background: var(--accent-primary);
     border: 2px solid var(--border-primary);
-
+    color: var(--btn-primary);
 }
 .btn-secondary {
     background: var(--bg-secondary);
@@ -282,8 +303,8 @@ h3 {
     border: 2px solid var(--border-primary);
 }
 .btn-secondary:hover {
-    background: var(--border-secondary);
-    border-color: var(--border-secondary);
+    background: var(--options-hover);
+    border-color: var(--options-hover);
 }
 
 /* Botones deshabilitados con timeout */
@@ -357,7 +378,6 @@ h3 {
     filter: brightness(1.15);
 }   
 .btn-audio.current-stimulus, #btn-x.current-stimulus {
-    background: var(--accent-primary);
     transform: translateY(3px);
     border: 3px solid var(--transparent-text);
 }
@@ -419,7 +439,6 @@ h3 {
 .confirmation-message {
     display: flex;
     align-items: center;
-    border: 2px solid var(--border-primary);
     gap: 8px;
     padding: 10px 20px; /* Similar to button padding */
     background: var(--accent-success);

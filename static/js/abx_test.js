@@ -203,7 +203,8 @@ class ABXAudioController {
 
         this.responseTimeoutActive = true;
         this.resetPlayback();
-        this.showResponseConfirmation(response);
+        // No mostrar confirmación aquí, esperar a la respuesta del backend
+        // this.showResponseConfirmation(response);
         
         // Deshabilita los botones de estímulo
         ['btn-a', 'btn-b', 'btn-x'].forEach(id => {
@@ -230,13 +231,19 @@ class ABXAudioController {
             return response.json();
         })
         .then(data => {
-            setTimeout(() => {
-                if (data.status === "completed" && data.redirect) {
+            // Mostrar confirmación y avanzar barra de progreso al mismo tiempo
+            if (data.status === "completed" && data.redirect) {
+                // Última comparación: mostrar barra llena
+                this.showResponseConfirmation(response, data.current || 1, data.total || 1);
+                setTimeout(() => {
                     window.location.href = data.redirect;
-                } else if (data.status === "continue") {
+                }, 1000);
+            } else if (data.status === "continue") {
+                this.showResponseConfirmation(response, data.current, data.total);
+                setTimeout(() => {
                     this.loadNextComparison(data.next_comparison, data.current, data.total);
-                }
-            }, 1000);
+                }, 1000);
+            }
         })
         .catch(error => {
             console.error('Error enviando respuesta:', error);
@@ -248,10 +255,12 @@ class ABXAudioController {
         });
     }
 
-    showResponseConfirmation(response) {
+    showResponseConfirmation(response, current, total) {
         const responseOptions = document.querySelector('.response-options');
         const confirmationDiv = document.getElementById('response-confirmation');
         const confirmationText = document.getElementById('confirmation-text');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
         
         if (responseOptions && confirmationDiv && confirmationText) {
             // Fade out buttons first
@@ -279,6 +288,13 @@ class ABXAudioController {
                 
                 // Show confirmation with fade in
                 confirmationDiv.classList.add('show');
+
+                // Avanza la barra de progreso y el texto al mismo tiempo
+                if (progressFill && progressText && typeof current === "number" && typeof total === "number") {
+                    const percentage = (current / total) * 100;
+                    progressFill.style.width = percentage + '%';
+                    progressText.textContent = `Comparación ${current} de ${total}`;
+                }
             }, 300); // Wait for button fade out
         }
     }
@@ -314,24 +330,11 @@ class ABXAudioController {
 
     async loadNextComparison(comparison, current, total) {
         await this.loadAudioFiles(comparison.stimulus_a, comparison.stimulus_b, comparison.stimulus_x);
-
-        const progressFill = document.getElementById('progress-fill');
-        const progressText = document.getElementById('progress-text');
-
-        if (progressFill) {
-            const percentage = (current / total) * 100;
-            progressFill.style.width = percentage + '%';
-        }
-
-        if (progressText) {
-            progressText.textContent = `Comparación ${current} de ${total}`;
-        }
-
+        // El avance de barra y texto ahora ocurre en showResponseConfirmation
         // Keep confirmation message visible for exactly 1000ms, then show buttons again
         setTimeout(() => {
             // Hide confirmation and show response buttons again
             this.hideResponseConfirmation();
-            
             // Clear response timeout to allow new responses
             this.responseTimeoutActive = false;
         }, 1000);
