@@ -8,54 +8,38 @@
             <h2>¡Hola, gracias por participar!</h2>
             
             <div class="instructions">
-                <p>A continuación se encuentra una prueba subjetiva en la que tendrás que discriminar entre dos fragmentos de audio.</p>
-                
-                <p>Durante el test se presentan dos estímulos (A y B), tu trabajo es señalar cuál de estos dos corresponde con el estímulo X. Algunas diferencias entre A y B pueden ser muy sutiles, por lo cual te recomendamos usar auriculares de buena calidad y ubicarte en un lugar con bajo ruido ambiente. Si no logras identificar cuál corresponde a X, puedes indicar la opción <strong>'No logro identificarlo'</strong>.</p>
+                <p>Este estudio investiga cómo las personas perciben diferentes tipos de reverberación artificial, en particular aquellas generadas mediante una técnica llamada <em>velvet noise</em>.</p>
 
-                <p>El test es completamente anónimo, solo te pedimos algunos datos básicos para el análisis de los resultados.</p>
+                <p>La participación es voluntaria y no remunerada. Por favor, asegurate de utilizar auriculares over-ear de la mayor calidad posible y realizar la prueba en un entorno silencioso. Continúa solo si estás dispuesto/a a participar. Los datos obtenidos serán utilizados en el marco de una publicación científica. Toda la información se almacenará de forma anónima y no será utilizada con ningún otro fin.</p>
             </div>
+
 
             <form id="participantForm" action="/participant_info" method="POST">
                 <div class="form-group">
-                    <label for="age_range">Rango de edad:</label>
-                    <select name="age_range" id="age_range" required>
+                    <label for="age_range">Edad:</label>
+                    <input type="number" name="age_range" id="age_range" min="1" max="99" required placeholder="Ingrese su edad" />
+                </div>
+                <div class="form-group">
+                    <label for="headphones_brand">Marca y modelo de auriculares (ej: JBL Tune 520BT)</label>
+                    <input type="text" name="headphones_brand" id="headphones_brand" required placeholder="Ingrese la marca y modelo de sus auriculares" />
+                </div>
+                <div class="form-group">
+                    <label for="hearing_problems">¿Tiene problemas auditivos?</label>
+                    <select name="hearing_problems" id="hearing_problems" required>
                         <option value="">Seleccionar...</option>
-                        {% for option in age_range_options %}
-                            <option value="{{ option.value }}">{{ option.display_name }}</option>
-                        {% endfor %}
+                        <option value="yes">Sí</option>
+                        <option value="no">No</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label for="audio_experience">Experiencia con audio:</label>
                     <select name="audio_experience" id="audio_experience" required>
                         <option value="">Seleccionar...</option>
-                        {% for option in audio_experience_options %}
-                            <option value="{{ option.value }}">{{ option.display_name }}</option>
-                        {% endfor %}
+                        <option value="none">Ninguna</option>
+                        <option value="musician">Músico</option>
+                        <option value="technician">Técnico/ingeniero</option>
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label for="headphones_type">Tipo de auriculares/altavoces:</label>
-                    <select name="headphones_type" id="headphones_type" required>
-                        <option value="">Seleccionar...</option>
-                        {% for option in headphones_type_options %}
-                            <option value="{{ option.value }}">{{ option.display_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="listening_environment">Ambiente de escucha:</label>
-                    <select name="listening_environment" id="listening_environment" required>
-                        <option value="">Seleccionar...</option>
-                        {% for option in listening_environment_options %}
-                            <option value="{{ option.value }}">{{ option.display_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
                 <div class="button-group">
                     <button type="submit" class="btn-primary">Continuar</button>
                 </div>

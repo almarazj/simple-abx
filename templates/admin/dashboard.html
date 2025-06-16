@@ -4,154 +4,108 @@
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-cogs me-2"></i>Administración</h5>
+    <!-- Toggle entre Dashboard y Resultados -->
+    <div class="d-flex justify-content-center mb-4">
+        <div class="btn-group" role="group">
+            <button id="btn-dashboard" class="btn btn-outline-primary active">Dashboard</button>
+            <button id="btn-results" class="btn btn-outline-secondary">Resultados</button>
+        </div>
+    </div>
+
+    <!-- Sección Dashboard -->
+    <div class="container" id="dashboard-section">
+        <div class="results-card">
+            <h2>Panel de Resultados</h2>
+
+            <div class="instructions">
+                <p>Este panel muestra un resumen general de los resultados obtenidos en el test por todos los participantes.</p>
+            </div>
+
+            <!-- Estadísticas globales -->
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.total_tests }}</div>
+                    <div class="stat-label">Total Tests</div>
                 </div>
-                <div class="list-group list-group-flush">
-                    <a href="/admin/dashboard" class="list-group-item list-group-item-action">
-                        <i class="fas fa-chart-pie me-2"></i>Dashboard
-                    </a>
-                    <a href="/admin/results" class="list-group-item list-group-item-action">
-                        <i class="fas fa-table me-2"></i>Resultados
-                    </a>
-                    <a href="/admin/export" class="list-group-item list-group-item-action">
-                        <i class="fas fa-download me-2"></i>Exportar datos
-                    </a>
-                    <a href="/admin/config" class="list-group-item list-group-item-action">
-                        <i class="fas fa-sliders-h me-2"></i>Configuración
-                    </a>
+                <div class="stat-item">
+                    <div class="stat-value">{{ "%.1f"|format(stats.accuracy_percentage or 0) }}%</div>
+                    <div class="stat-label">Precisión Promedio</div>
                 </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ "%.0f"|format(stats.correct_responses or 0) }}</div>
+                    <div class="stat-label">Respuestas Correctas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.total_responses or 0 }}</div>
+                    <div class="stat-label">Comparaciones</div>
+                </div>
+            </div>
+
+            <!-- Precisión por estímulo -->
+            <div class="additional-info">
+                <h3>Precisión por Estímulo</h3>
+                {% for stimulus, pairs in stimulus_pairs.items() %}
+                <div class="stat-item mb-3">
+                    <h4 class="mb-2 text-capitalize">{{ stimulus }}</h4>
+                    <div class="stats-grid">
+                        {% for pair in pairs %}
+                            {% set variation_id = pair.variation_id %}
+                            {% set pstats = pair_stats.get(variation_id, {'correct': 0, 'total': 0}) %}
+                            <div class="stat-item">
+                                <div class="stat-value">{{ pair.label }}</div>  {# ejemplo: "20 p/s" #}
+                                <div class="stat-label">{{ pstats.correct }}/{{ pstats.total }} correctas</div>
+                                <div class="small text-muted">
+                                    ({{ (pstats.correct / pstats.total * 100) | round(1) if pstats.total > 0 else 0 }}%)
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
-        
-        <div class="col-md-9">
-            <div class="row">
-                <!-- Estadísticas principales -->
-                <div class="col-md-3 mb-4">
-                    <div class="card bg-primary text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h6 class="card-title">Total Tests</h6>
-                                    <h2>{{ stats.total_tests }}</h2>
-                                </div>
-                                <i class="fas fa-user-check fa-2x opacity-75"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-3 mb-4">
-                    <div class="card bg-success text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h6 class="card-title">Precisión Promedio</h6>
-                                    <h2>{{ "%.1f"|format(stats.avg_accuracy or 0) }}%</h2>
-                                </div>
-                                <i class="fas fa-bullseye fa-2x opacity-75"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-3 mb-4">
-                    <div class="card bg-info text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h6 class="card-title">Tiempo Promedio</h6>
-                                    <h2>{{ "%.0f"|format(stats.avg_response_time or 0) }}ms</h2>
-                                </div>
-                                <i class="fas fa-clock fa-2x opacity-75"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-3 mb-4">
-                    <div class="card bg-warning text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h6 class="card-title">Tests Totales</h6>
-                                    <h2>{{ stats.total_tests or 0 }}</h2>
-                                </div>
-                                <i class="fas fa-calendar-day fa-2x opacity-75"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Gráficos y datos -->
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5><i class="fas fa-chart-line me-2"></i>Precisión por día</h5>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="accuracyChart" height="200"></canvas>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5><i class="fas fa-chart-pie me-2"></i>Distribución de respuestas</h5>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="responseChart" height="200"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Últimos resultados -->
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-list-alt me-2"></i>Últimos resultados</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Usuario ID</th>
-                                    <th>Precisión</th>
-                                    <th>Tiempo Promedio</th>
-                                    <th>Experiencia</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for result in recent_results %}
-                                <tr>
-                                    <td>{{ result.start_time[:10] }}</td>
-                                    <td><code>{{ result.user_id[:8] }}</code></td>
-                                    <td>
-                                        <span class="badge bg-{% if result.accuracy >= 80 %}success{% elif result.accuracy >= 60 %}warning{% else %}danger{% endif %}">
-                                            {{ "%.1f"|format(result.accuracy) }}%
-                                        </span>
-                                    </td>
-                                    <td>{{ "%.0f"|format(result.avg_response_time) }}ms</td>
-                                    <td>{{ result.participant_info.audio_experience }}</td>
-                                    <td>
-                                        <a href="/admin/result/{{ result._id }}" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+    </div>
+
+    <!-- Sección Resultados -->
+    <div id="results-section" style="display: none;">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Usuario ID</th>
+                                <th>Fecha</th>
+                                <th>Precisión</th>
+                                <th>Correctas/Total</th>
+                                <th>Edad</th>
+                                <th>Auriculares</th>
+                                <th>Problemas auditivos</th>
+                                <th>Experiencia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                            {% set total = result.responses|length %}
+                            {% set correct = result.responses|selectattr('correct')|select|list|length %}
+                            {% set accuracy = (correct / total * 100) if total > 0 else 0 %}
+                            <tr>
+                                <td><code>{{ result.user_id[:8] }}...</code></td>
+                                <td>{{ result.start_time.strftime('%Y-%m-%d') if result.start_time }}</td>
+                                <td>
+                                    <span class="badge bg-primary text-white d-inline-block text-center" style="min-width: 8ch;">
+                                        {{ accuracy|round(0) }}%
+                                    </span>
+                                </td>
+                                <td>{{ correct }}/{{ total }}</td>
+                                <td>{{ result.participant_info.age_range }}</td>
+                                <td>{{ result.participant_info.headphones_brand }}</td>
+                                <td>{{ result.participant_info.hearing_problems }}</td>
+                                <td>{{ result.participant_info.audio_experience }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -159,51 +113,26 @@
 </div>
 
 <script>
-// Datos para los gráficos
-const accuracyData = {{ accuracy_data | tojson }};
-const responseData = {{ response_data | tojson }};
+// Alternar secciones
+document.addEventListener("DOMContentLoaded", () => {
+    const btnDashboard = document.getElementById("btn-dashboard");
+    const btnResults = document.getElementById("btn-results");
+    const dashboardSection = document.getElementById("dashboard-section");
+    const resultsSection = document.getElementById("results-section");
 
-// Configurar gráfico de precisión
-const accuracyCtx = document.getElementById('accuracyChart').getContext('2d');
-new Chart(accuracyCtx, {
-    type: 'line',
-    data: {
-        labels: accuracyData.labels,
-        datasets: [{
-            label: 'Precisión promedio (%)',
-            data: accuracyData.values,
-            borderColor: 'rgb(75, 192, 192)',
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            tension: 0.1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true,
-                max: 100
-            }
-        }
-    }
-});
+    btnDashboard.addEventListener("click", () => {
+        dashboardSection.style.display = "block";
+        resultsSection.style.display = "none";
+        btnDashboard.classList.add("active");
+        btnResults.classList.remove("active");
+    });
 
-// Configurar gráfico de respuestas
-const responseCtx = document.getElementById('responseChart').getContext('2d');
-new Chart(responseCtx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Correctas', 'Incorrectas', 'Empates'],
-        datasets: [{
-            data: [responseData.correct, responseData.incorrect, responseData.ties],
-            backgroundColor: ['#28a745', '#dc3545', '#ffc107']
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false
-    }
+    btnResults.addEventListener("click", () => {
+        dashboardSection.style.display = "none";
+        resultsSection.style.display = "block";
+        btnResults.classList.add("active");
+        btnDashboard.classList.remove("active");
+    });
 });
 </script>
 {% endblock %}

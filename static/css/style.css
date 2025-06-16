@@ -425,17 +425,17 @@ h3 {
 
 /* Mensaje de confirmación de respuesta */
 .response-confirmation {
-    display: none; /* Hidden by default, no space taken */
+    display: none;
     justify-content: center;
     align-items: center;
-    margin: 30px 0; /* Same margin as response-options */
+    margin: 30px 0;
     opacity: 0;
     will-change: transform;
     transition: opacity 0.3s ease-in-out;
 }
 
 .response-confirmation.show {
-    display: flex; /* Show when needed */
+    display: flex;
     opacity: 1;
     will-change: transform;
 }
@@ -444,11 +444,11 @@ h3 {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 20px; /* Similar to button padding */
+    padding: 10px 20px;
     background: var(--accent-success);
     color: #fff;
     border-radius: 8px;
-    font-size: 1.1rem; /* Same as response button font */
+    font-size: 1.1rem;
     font-weight: 500;
     box-shadow: 0 4px 12px var(--shadow-success);
     will-change: transform;
@@ -458,7 +458,7 @@ h3 {
 }
 
 .confirmation-message i {
-    font-size: 1.2rem; /* Slightly smaller icon */
+    font-size: 1.2rem;
     will-change: transform;
 }
 
@@ -523,6 +523,7 @@ h3 {
 .additional-info p {
     text-align: justify;
 }
+
 
 /* Responsive solo para móviles */
 
@@ -640,5 +641,4 @@ button:disabled,
     opacity: 0.5;
     cursor: not-allowed;
     filter: grayscale(60%);
-    /* Puedes agregar más estilos si quieres */
 }

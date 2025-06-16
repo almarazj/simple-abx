@@ -2,29 +2,29 @@
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from app.models.enums import AudioExperience, HeadphonesType, ListeningEnvironment, TestResponse, AgeRange
+from app.models.enums import TestResponse
 from fastapi import Form
 
 # Schemas para requests
 class ParticipantInfoCreate(BaseModel):
-    age_range: AgeRange
-    audio_experience: AudioExperience
-    headphones_type: HeadphonesType
-    listening_environment: ListeningEnvironment
+    age_range: int
+    headphones_brand: str
+    hearing_problems: str
+    audio_experience: str
 
     @classmethod
     def as_form(
         cls,
-        age_range: str = Form(...),
-        audio_experience: AudioExperience = Form(...),
-        headphones_type: HeadphonesType = Form(...),
-        listening_environment: ListeningEnvironment = Form(...)
+        age_range: int = Form(...),
+        headphones_brand: str = Form(...),
+        hearing_problems: str = Form(...),
+        audio_experience: str = Form(...)
     ):
         return cls(
             age_range=age_range,
-            audio_experience=audio_experience,
-            headphones_type=headphones_type,
-            listening_environment=listening_environment
+            headphones_brand=headphones_brand,
+            hearing_problems=hearing_problems,
+            audio_experience=audio_experience
         )
 
 class TestResponseSubmit(BaseModel):

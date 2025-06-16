@@ -242,16 +242,16 @@ class ABXAudioController {
         .then(data => {
             // Mostrar confirmación y avanzar barra de progreso al mismo tiempo
             if (data.status === "completed" && data.redirect) {
-                // Última comparación: mostrar barra llena
+                window.testFinished = true; // Evita el warning en el último submit
                 this.showResponseConfirmation(response, data.current || 1, data.total || 1);
                 setTimeout(() => {
                     window.location.href = data.redirect;
-                }, 500);
+                }, 1000);
             } else if (data.status === "continue") {
                 this.showResponseConfirmation(response, data.current, data.total);
                 setTimeout(() => {
                     this.loadNextComparison(data.next_comparison, data.current, data.total);
-                }, 500);
+                }, 1000);
             }
         })
         .catch(error => {
@@ -387,6 +387,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     let abxController = null;
 
     const isTestPage = document.getElementById('btn-a') !== null;
+    if (isTestPage && window.comparisonData && window.abxController) {
+        // Precarga automática de los audios de la primera comparación
+        await window.abxController.loadAudioFiles(
+            window.comparisonData.stimulus_a,
+            window.comparisonData.stimulus_b,
+            window.comparisonData.stimulus_x
+        );
+    }
     const isCalibrationPage = document.getElementById('start-test-btn') !== null;
     
     if (isTestPage || isCalibrationPage) {
