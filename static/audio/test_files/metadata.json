@@ -10,36 +10,43 @@
       "variations": [
         {
           "id": "ovn50_drum",
+          "pulse_density": "50",
           "file": "drum/ovn50_drum.wav",
           "description": "Drum with OVN-20 velvet noise"
         },
         {
           "id": "ovn100_drum",
+          "pulse_density": "100",
           "file": "drum/ovn100_drum.wav",
           "description": "Drum with OVN-100 velvet noise"
         },
         {
           "id": "ovn150_drum",
+          "pulse_density": "150",
           "file": "drum/ovn150_drum.wav",
           "description": "Drum with OVN-150 velvet noise"
         },
         {
           "id": "ovn200_drum",
+          "pulse_density": "200",
           "file": "drum/ovn200_drum.wav",
           "description": "Drum with OVN-200 velvet noise"
         },
         {
           "id": "ovn250_drum",
+          "pulse_density": "250",
           "file": "drum/ovn250_drum.wav",
           "description": "Drum with OVN-250 velvet noise"
         },
         {
           "id": "ovn300_drum",
+          "pulse_density": "300",
           "file": "drum/ovn300_drum.wav",
           "description": "Drum with OVN-300 velvet noise"
         },
         {
           "id": "ovn350_drum",
+          "pulse_density": "350",
           "file": "drum/ovn350_drum.wav",
           "description": "Drum with OVN-350 velvet noise"
         }
@@ -53,36 +60,43 @@
       "variations": [
         {
           "id": "ovn10_vocal",
+          "pulse_density": "10",
           "file": "vocal/ovn10_vocal.wav",
           "description": "Vocal with OVN-10 velvet noise"
         },
         {
           "id": "ovn20_vocal",
+          "pulse_density": "20",
           "file": "vocal/ovn20_vocal.wav",
           "description": "Vocal with OVN-20 velvet noise"
         },
         {
           "id": "ovn30_vocal",
+          "pulse_density": "30",
           "file": "vocal/ovn30_vocal.wav",
           "description": "Vocal with OVN-30 velvet noise"
         },
         {
           "id": "ovn40_vocal",
+          "pulse_density": "40",
           "file": "vocal/ovn40_vocal.wav",
           "description": "Vocal with OVN-40 velvet noise"
         },
         {
           "id": "ovn50_vocal",
+          "pulse_density": "50",
           "file": "vocal/ovn50_vocal.wav",
           "description": "Vocal with OVN-50 velvet noise"
         },
         {
           "id": "ovn60_vocal",
+          "pulse_density": "60",
           "file": "vocal/ovn60_vocal.wav",
           "description": "Vocal with OVN-60 velvet noise"
         },
         {
           "id": "ovn70_vocal",
+          "pulse_density": "70",
           "file": "vocal/ovn70_vocal.wav",
           "description": "Vocal with OVN-70 velvet noise"
         }
@@ -96,36 +110,43 @@
       "variations": [
         {
           "id": "ovn1_flute",
+          "pulse_density": "1",
           "file": "flute/ovn1_flute.wav",
           "description": "Flute with OVN-1 velvet noise"
         },
         {
           "id": "ovn3_flute",
+          "pulse_density": "3",
           "file": "flute/ovn3_flute.wav",
           "description": "Flute with OVN-3 velvet noise"
         },
         {
           "id": "ovn5_flute",
+          "pulse_density": "5",
           "file": "flute/ovn5_flute.wav",
           "description": "Flute with OVN-5 velvet noise"
         },
         {
           "id": "ovn7_flute",
+          "pulse_density": "7",
           "file": "flute/ovn7_flute.wav",
           "description": "Flute with OVN-7 velvet noise"
         },
         {
           "id": "ovn9_flute",
+          "pulse_density": "9",
           "file": "flute/ovn9_flute.wav",
           "description": "Flute with OVN-9 velvet noise"
         },
         {
           "id": "ovn11_flute",
+          "pulse_density": "11",
           "file": "flute/ovn11_flute.wav",
           "description": "Flute with OVN-11 velvet noise"
         },
         {
           "id": "ovn13_flute",
+          "pulse_density": "13",
           "file": "flute/ovn13_flute.wav",
           "description": "Flute with OVN-13 velvet noise"
         }

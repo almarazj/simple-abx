@@ -10,7 +10,7 @@ class ABXAudioController {
         this.audioOffset = 0;
         this.isPlaying = false;
         this.volume = 0.7;
-        this.crossfadeDuration = 0.2; // 100ms crossfade
+        this.crossfadeDuration = 0.1; // 100ms crossfade
         this.gainNodes = {}; // Will be initialized when context is created
 
         this.responseTimeoutActive = false; // Prevent rapid response clicks
@@ -144,33 +144,56 @@ class ABXAudioController {
 
         // Fade out current stimulus
         Object.keys(this.gainNodes).forEach(stimulus => {
+            const gainNode = this.gainNodes[stimulus];
+            gainNode.gain.setValueAtTime(gainNode.gain.value, now);
             if (stimulus !== targetStimulus) {
                 this.gainNodes[stimulus].gain.linearRampToValueAtTime(0, now + fadeDuration);
             }
         });
 
         // Fade in target stimulus
-        this.gainNodes[targetStimulus].gain.linearRampToValueAtTime(this.volume, now + fadeDuration);
+        const targetGain = this.gainNodes[targetStimulus].gain;
+        targetGain.setValueAtTime(targetGain.value, now);
+        targetGain.linearRampToValueAtTime(this.volume, now + fadeDuration);
     }
 
     stopAllSources() {
-        if (this.sources) {
-            Object.values(this.sources).forEach(source => {
+        if (!this.sources || !this.gainNodes) return;
+
+        const fadeOutTime = 0.05; // segundos
+        const now = this.context.currentTime;
+        const stopTime = now + fadeOutTime;
+
+        // Fade-out con precisión
+        for (const stimulus of Object.keys(this.gainNodes)) {
+            const gainNode = this.gainNodes[stimulus].gain;
+            gainNode.cancelScheduledValues(now);
+            gainNode.setValueAtTime(gainNode.value, now);
+            gainNode.linearRampToValueAtTime(0.0, stopTime);
+        }
+
+        // Detener los sources justo después del fade-out
+        for (const [stimulus, source] of Object.entries(this.sources)) {
+            try {
+                // Programar stop exactamente al final del fade
+                source.stop(stopTime);
+            } catch (e) {
+                console.warn(`Error al detener source de ${stimulus}:`, e);
+            }
+        }
+
+        // Limpiar después del stopTime con un pequeño margen
+        setTimeout(() => {
+            for (const source of Object.values(this.sources)) {
                 try {
-                    source.stop();
                     source.disconnect();
                 } catch (e) {}
-            });
-        }
-        this.sources = {};
-        this.isPlaying = false;
+            }
+            this.sources = {};
+        }, (fadeOutTime + 0.05) * 1000);
 
-        // Reset all gains to silent
-        if (this.gainNodes) {
-            Object.keys(this.gainNodes).forEach(stimulus => {
-                this.gainNodes[stimulus].gain.value = 0;
-            });
-        }
+        this.isPlaying = false;
+        this.currentStimulus = null;
     }
 
     resetPlayback() {
