@@ -59,10 +59,22 @@
       "reference_file": "vocal/gwn_vocal.wav",
       "variations": [
         {
+          "id": "ovn5_vocal",
+          "pulse_density": "5",
+          "file": "vocal/ovn5_vocal.wav",
+          "description": "Vocal with OVN-5 velvet noise"
+        },
+        {
           "id": "ovn10_vocal",
           "pulse_density": "10",
           "file": "vocal/ovn10_vocal.wav",
           "description": "Vocal with OVN-10 velvet noise"
+        },
+        {
+          "id": "ovn15_vocal",
+          "pulse_density": "15",
+          "file": "vocal/ovn15_vocal.wav",
+          "description": "Vocal with OVN-15 velvet noise"
         },
         {
           "id": "ovn20_vocal",
@@ -71,34 +83,22 @@
           "description": "Vocal with OVN-20 velvet noise"
         },
         {
+          "id": "ovn25_vocal",
+          "pulse_density": "25",
+          "file": "vocal/ovn25_vocal.wav",
+          "description": "Vocal with OVN-25 velvet noise"
+        },
+        {
           "id": "ovn30_vocal",
           "pulse_density": "30",
           "file": "vocal/ovn30_vocal.wav",
           "description": "Vocal with OVN-30 velvet noise"
         },
         {
-          "id": "ovn40_vocal",
-          "pulse_density": "40",
-          "file": "vocal/ovn40_vocal.wav",
-          "description": "Vocal with OVN-40 velvet noise"
-        },
-        {
-          "id": "ovn50_vocal",
-          "pulse_density": "50",
-          "file": "vocal/ovn50_vocal.wav",
-          "description": "Vocal with OVN-50 velvet noise"
-        },
-        {
-          "id": "ovn60_vocal",
-          "pulse_density": "60",
-          "file": "vocal/ovn60_vocal.wav",
-          "description": "Vocal with OVN-60 velvet noise"
-        },
-        {
-          "id": "ovn70_vocal",
-          "pulse_density": "70",
-          "file": "vocal/ovn70_vocal.wav",
-          "description": "Vocal with OVN-70 velvet noise"
+          "id": "ovn35_vocal",
+          "pulse_density": "35",
+          "file": "vocal/ovn35_vocal.wav",
+          "description": "Vocal with OVN-35 velvet noise"
         }
       ]
     },
@@ -115,10 +115,22 @@
           "description": "Flute with OVN-1 velvet noise"
         },
         {
+          "id": "ovn2_flute",
+          "pulse_density": "2",
+          "file": "flute/ovn2_flute.wav",
+          "description": "Flute with OVN-2 velvet noise"
+        },
+        {
           "id": "ovn3_flute",
           "pulse_density": "3",
           "file": "flute/ovn3_flute.wav",
           "description": "Flute with OVN-3 velvet noise"
+        },
+        {
+          "id": "ovn4_flute",
+          "pulse_density": "4",
+          "file": "flute/ovn4_flute.wav",
+          "description": "Flute with OVN-4 velvet noise"
         },
         {
           "id": "ovn5_flute",
@@ -127,28 +139,16 @@
           "description": "Flute with OVN-5 velvet noise"
         },
         {
+          "id": "ovn6_flute",
+          "pulse_density": "6",
+          "file": "flute/ovn6_flute.wav",
+          "description": "Flute with OVN-6 velvet noise"
+        },
+        {
           "id": "ovn7_flute",
           "pulse_density": "7",
           "file": "flute/ovn7_flute.wav",
           "description": "Flute with OVN-7 velvet noise"
-        },
-        {
-          "id": "ovn9_flute",
-          "pulse_density": "9",
-          "file": "flute/ovn9_flute.wav",
-          "description": "Flute with OVN-9 velvet noise"
-        },
-        {
-          "id": "ovn11_flute",
-          "pulse_density": "11",
-          "file": "flute/ovn11_flute.wav",
-          "description": "Flute with OVN-11 velvet noise"
-        },
-        {
-          "id": "ovn13_flute",
-          "pulse_density": "13",
-          "file": "flute/ovn13_flute.wav",
-          "description": "Flute with OVN-13 velvet noise"
         }
       ]
     }

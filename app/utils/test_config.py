@@ -17,8 +17,14 @@ def get_audio_pairs_list():
     with open(metadata_path, 'r', encoding='utf-8') as f:
         metadata = json.load(f)
 
+    stimuli = metadata.get('stimuli', [])
+    
+    # Randomly drop one of the stimuli to have 14 variants
+    stimuli.remove(random.choice(stimuli))
+
     pairs = []
-    for stimulus in metadata.get('stimuli', []):
+    
+    for stimulus in stimuli:
         stimulus_type = stimulus.get('id')
         reference_file = stimulus.get('reference_file')
         for variation in stimulus.get('variations', []):
