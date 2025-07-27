@@ -41,12 +41,14 @@ class ABXAudioController {
         
         const basePath = '/static/audio/test_files/';
         const files = { A: stimulusA, B: stimulusB, X: stimulusX };
+        const cacheBuster = `?v=${Date.now()}`;
 
         // Stop any current playback and reset
         this.stopAllSources();
 
         for (const key of Object.keys(files)) {
-            const response = await fetch(basePath + files[key]);
+            const url = basePath + files[key] + cacheBuster;
+            const response = await fetch(url);
             const arrayBuffer = await response.arrayBuffer();
             this.buffers[key] = await this.context.decodeAudioData(arrayBuffer);
             console.log(`Audio cargado: ${files[key]}`);
@@ -133,8 +135,8 @@ class ABXAudioController {
         }
 
         // Cambiar de estímulo normalmente
-        this.crossfadeToStimulus(stimulus);
         this.currentStimulus = stimulus;
+        this.crossfadeToStimulus(stimulus);
         this.updateButtonStates();
     }
 

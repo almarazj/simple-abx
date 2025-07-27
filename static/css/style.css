@@ -19,7 +19,7 @@
     --options-hover: #2c2c2c;
     --accent-primary-hover: #393e59;
     --bg-audio-button: #7ad358;
-    --accent-success: #28a745;
+    --accent-success: #2bbc4d;
     --shadow-primary: rgba(0, 0, 0, 0.1);
     --shadow-success: rgba(40, 167, 69, 0.4);
     --transparent-text: rgba(255, 255, 255, 0.25);
@@ -378,7 +378,6 @@ h3 {
     transform: translateY(0);
 }
 .btn-audio:hover, #btn-x:hover {
-    transform: translateY(3px);
     filter: brightness(1.15);
 }   
 .btn-audio.current-stimulus, #btn-x.current-stimulus {
