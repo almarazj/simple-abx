@@ -51,7 +51,7 @@ class ABXAudioController {
             const response = await fetch(url);
             const arrayBuffer = await response.arrayBuffer();
             this.buffers[key] = await this.context.decodeAudioData(arrayBuffer);
-            console.log(`Audio cargado: ${files[key]}`);
+            console.log(`Audio cargado: ${key}`);
         }
 
         this.resetPlayback();
