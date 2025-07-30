@@ -16,8 +16,8 @@ def create_app() -> FastAPI:
         description="Aplicación para tests de audio ABX",
         version=settings.VERSION,
         debug=settings.DEBUG,
-        docs_url="/docs" if settings.DEBUG else None,
-        redoc_url="/redoc" if settings.DEBUG else None,
+        docs_url="/docs",
+        redoc_url="/redoc",
     )
     
     # Configurar logging

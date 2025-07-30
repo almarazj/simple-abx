@@ -1,10 +1,11 @@
 # app/models/schemas.py
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import List, Dict, Any, Optional
 from fastapi import Form
+from datetime import datetime
 
 # Schemas para requests
-class ParticipantInfoCreate(BaseModel):
+class ParticipantInfo(BaseModel):
     age_range: int
     headphones_brand: str
     hearing_problems: str
@@ -25,19 +26,43 @@ class ParticipantInfoCreate(BaseModel):
             audio_experience=audio_experience
         )
 
-class ParticipantInfo(BaseModel):
-    """Schema para información del participante"""
-    age_range: str
-    audio_experience: str
-    audio_experience_display: Optional[str] = None
-    headphones_type: str
-    headphones_type_display: Optional[str] = None
-    listening_environment: str
-    listening_environment_display: Optional[str] = None
+class ResponseItem(BaseModel):
+    stimulus: Optional[str]
+    pulse_density: Optional[int]
+    response: Optional[str]
+    correct: Optional[bool]
 
-class ComparisonData(BaseModel):
-    """Schema para datos de una comparación"""
-    stimulus_a: str = Field(..., description="Estímulo A")
-    stimulus_b: str = Field(..., description="Estímulo B")
-    stimulus_x: str = Field(..., description="Estímulo X (a comparar)")
-    correct_answer: str = Field(..., description="Respuesta correcta")
+class TestResultSchema(BaseModel):
+    user_id: str
+    participant_info: ParticipantInfo
+    start_time: Optional[datetime]
+    responses: List[ResponseItem]
+    test_config: Dict[str, Any]
+
+class PairStatsSchema(BaseModel):
+    stimulus: str
+    pulse_density: int
+    correct: float
+    total: int
+
+class StatsSchema(BaseModel):
+    total_tests: int
+    total_responses: int
+    correct_responses: float
+    accuracy_percentage: float
+
+class PairStimulusSchema(BaseModel):
+    label: str
+    pulse_density: int
+    accuracy: float
+    pair_id: str
+
+class DashboardContextSchema(BaseModel):
+    request: Any  # FastAPI Request object, not validated by Pydantic
+    stats: StatsSchema
+    pair_stats: Dict[str, PairStatsSchema]
+    accuracy_data: Dict[str, List[float]]
+    response_data: Dict[str, List[int]]
+    stimulus_pairs: Dict[str, List[PairStimulusSchema]]
+    results: List[TestResultSchema]
+    config: Any  # Your settings/config object

@@ -5,7 +5,7 @@ from app.core.config import settings
 from app.database.session import get_firestore_collection
 from app.utils.test_config import generate_test_sequence
 from app.database.models import TestResult
-from app.models.schemas import ParticipantInfoCreate
+from app.models.schemas import ParticipantInfo, DashboardContextSchema
 import uuid
 from datetime import datetime
 
@@ -33,7 +33,7 @@ def calibration(request: Request):
 @web_router.post("/participant_info")
 async def participant_info(
     request: Request,
-    form: ParticipantInfoCreate = Depends(ParticipantInfoCreate.as_form),
+    form: ParticipantInfo = Depends(ParticipantInfo.as_form),
     background_tasks: BackgroundTasks = None
 ):
     user_id = str(uuid.uuid4())
@@ -233,16 +233,15 @@ async def admin_dashboard(request: Request):
     for stim in by_stimulus:
         by_stimulus[stim] = sorted(by_stimulus[stim], key=lambda x: x["pulse_density"])
 
-    return templates.TemplateResponse(
-        "admin/dashboard.html",
-        {
-            "request": request,
-            "stats": stats,
-            "pair_stats": pair_stats,
-            "accuracy_data": dict(accuracy_data),
-            "response_data": dict(response_data),
-            "stimulus_pairs": dict(by_stimulus),
-            "results": results,
-            "config": settings,
-        }
+    context = DashboardContextSchema(
+        request=request,
+        stats=stats,
+        pair_stats=pair_stats,
+        accuracy_data=dict(accuracy_data),
+        response_data=dict(response_data),
+        stimulus_pairs=dict(by_stimulus),
+        results=results,
+        config=settings,
     )
+    
+    return templates.TemplateResponse("admin/dashboard.html", context.model_dump())
