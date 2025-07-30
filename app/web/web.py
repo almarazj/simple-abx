@@ -224,7 +224,8 @@ async def admin_dashboard(request: Request):
         by_stimulus[stimulus].append({
             "label": f"{density} p/s",
             "pulse_density": int(density),
-            "accuracy": accuracy
+            "accuracy": accuracy,
+            "pair_id": pair_id
         })
         accuracy_data[stimulus].append(accuracy)
         response_data[stimulus].append(data["total"])
