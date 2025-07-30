@@ -17,7 +17,7 @@
     --border-header: rgba(0, 0, 0, 0.1);
     --accent-primary: #2c2c2c;
     --options-hover: #2c2c2c;
-    --accent-primary-hover: #393e59;
+    --accent-primary-hover: #e4e4e4;
     --bg-audio-button: #7ad358;
     --accent-success: #2bbc4d;
     --shadow-primary: rgba(0, 0, 0, 0.1);
@@ -46,7 +46,7 @@
     --border-header: rgba(255, 255, 255, 0.1);
     --accent-primary: #ffffff;
     --options-hover: #404040;
-    --accent-primary-hover: #6d28d9;
+    --accent-primary-hover: #696374;
     --accent-success: #10b981;
     --shadow-primary: rgba(0, 0, 0, 0.3);
     --shadow-success: rgba(16, 185, 129, 0.4);
@@ -502,27 +502,147 @@ h3 {
 .stat-item {
     background: var(--bg-secondary);
     border-radius: 10px;
-    padding: 20px;
+    padding: 10px;
     text-align: center;
     transition: background 0.3s;
 }
-.stat-value {
-    font-size: 2rem;
-    font-weight: bold;
+.global-stat-value {
+    font-size: 2.2rem;
+    font-weight: 700;
     color: var(--accent-primary);
     margin-bottom: 5px;
-    transition: color 0.3s;
+    letter-spacing: 0.5px;
+}
+.global-stat-label {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    font-weight: 400;
+    letter-spacing: 0.2px;
+}
+.stats-scroll-row {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-primary) var(--bg-secondary);
+}
+.stat-item-compact {
+    min-width: 50px;
+    padding: 12px 8px;
+    margin: 0;
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    text-align: center;
+    flex: 1 1 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 .stat-label {
     color: var(--text-secondary);
     font-size: 0.9rem;
     transition: color 0.3s;
 }
-
+.stat-percentage {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--accent-primary, #007bff);
+    margin: 8px 0 4px 0;
+    transition: color 0.3s;
+}
 .additional-info p {
     text-align: justify;
 }
+.btn-group .btn {
+    min-width: 140px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    background: var(--bg-secondary);
+    transition: 
+        background 0.2s, 
+        color 0.2s, 
+        border-color 0.2s, 
+        box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
 
+.btn-group .btn:not(:last-child) {
+    border-right: none;
+}
+
+.btn-group .btn.active,
+.btn-group .btn:focus {
+    background: var(--accent-primary);
+    color: var(--btn-primary);
+    border-color: var(--accent-primary);
+    z-index: 2;
+}
+
+.btn-group .btn:not(.active):hover {
+    border-color: var(--btn-primary);
+}
+.btn:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
+}
+.btn:focus-visible {
+    outline: 2px solid var(--accent-primary-hover);
+    outline-offset: 2px;
+}
+
+/* Tabla de resultados estilo tarjeta */
+.abx-table {
+    width: 100%;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-radius: 15px;
+    overflow: hidden;
+    font-family: inherit;
+    box-shadow: none;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 0;
+}
+.abx-table th, .abx-table td {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: none;
+    font-size: 1rem;
+    font-weight: 400;
+    padding: 10px 8px;
+    text-align: center;
+}
+.abx-table th {
+    font-weight: 600;
+    background: var(--bg-secondary);
+    color: var(--accent-primary);
+    border-bottom: 2px solid var(--border-secondary);
+}
+.abx-table tr {
+    border-radius: 10px;
+    transition: background 0.2s;
+}
+.abx-table tbody tr:hover {
+    background: var(--border-secondary);
+}
+.abx-table td {
+    border-bottom: 1px solid var(--border-secondary);
+}
+.abx-table tr:last-child td {
+    border-bottom: none;
+}
+.results-card {
+    border-radius: 15px;
+    background: var(--bg-card);
+    box-shadow: 0 20px 40px var(--shadow-primary);
+    padding: 40px;
+    margin: 0 auto 30px auto;
+    max-width: 1000px;
+    width: 100%;
+}
 
 /* Responsive solo para móviles */
 
@@ -593,6 +713,11 @@ h3 {
     }
 
     .stats-grid { grid-template-columns: 1fr; }
+    .stat-item-compact {
+        min-width: 90px;
+        max-width: 100px;
+        flex: 0 0 90px;
+    }
     .btn-audio, .btn-primary, .btn-secondary {
         width: 100%;
         max-width: none;
@@ -630,6 +755,11 @@ h3 {
     }
     .confirmation-message i {
         font-size: 1.2rem;
+    }
+    .btn-group .btn {
+        min-width: 100px;
+        font-size: 1rem;
+        padding: 10px 0;
     }
 }
 

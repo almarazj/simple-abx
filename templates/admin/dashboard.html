@@ -24,20 +24,20 @@
             <!-- Estadísticas globales -->
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-value">{{ stats.total_tests }}</div>
-                    <div class="stat-label">Total Tests</div>
+                    <div class="global-stat-value">{{ stats.total_tests }}</div>
+                    <div class="global-stat-label">Total Tests</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">{{ "%.1f"|format(stats.accuracy_percentage or 0) }}%</div>
-                    <div class="stat-label">Precisión Promedio</div>
+                    <div class="global-stat-value">{{ "%.1f"|format(stats.accuracy_percentage or 0) }}%</div>
+                    <div class="global-stat-label">Precisión Promedio</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">{{ "%.0f"|format(stats.correct_responses or 0) }}</div>
-                    <div class="stat-label">Respuestas Correctas</div>
+                    <div class="global-stat-value">{{ "%.0f"|format(stats.correct_responses or 0) }}</div>
+                    <div class="global-stat-label">Respuestas Correctas</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">{{ stats.total_responses or 0 }}</div>
-                    <div class="stat-label">Comparaciones</div>
+                    <div class="global-stat-value">{{ stats.total_responses or 0 }}</div>
+                    <div class="global-stat-label">Comparaciones</div>
                 </div>
             </div>
 
@@ -47,16 +47,16 @@
                 {% for stimulus, pairs in stimulus_pairs.items() %}
                 <div class="stat-item mb-3">
                     <h4 class="mb-2 text-capitalize">{{ stimulus }}</h4>
-                    <div class="stats-grid">
+                    <div class="stats-scroll-row">
                         {% for pair in pairs %}
                             {% set variation_id = pair.pair_id %}
                             {% set pstats = pair_stats.get(variation_id, {'correct': 0, 'total': 0}) %}
-                            <div class="stat-item">
-                                <div class="stat-value">{{ pair.label }}</div>  {# ejemplo: "20 p/s" #}
-                                <div class="stat-label">{{ pstats.correct }}/{{ pstats.total }} correctas</div>
-                                <div class="small text-muted">
-                                    ({{ (pstats.correct / pstats.total * 100) | round(1) if pstats.total > 0 else 0 }}%)
+                            <div class="stat-item-compact">
+                                <div class="stat-label">{{ pair.label }}</div>
+                                <div class="stat-percentage">
+                                    {{ (pstats.correct / pstats.total * 100) | round(1) if pstats.total > 0 else 0 }}%
                                 </div>
+                                <div class="stat-label">{{ pstats.correct }}/{{ pstats.total }}</div>
                             </div>
                         {% endfor %}
                     </div>
@@ -68,45 +68,35 @@
 
     <!-- Sección Resultados -->
     <div id="results-section" style="display: none;">
-        <div class="card">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Usuario ID</th>
-                                <th>Fecha</th>
-                                <th>Precisión</th>
-                                <th>Correctas/Total</th>
-                                <th>Edad</th>
-                                <th>Auriculares</th>
-                                <th>Problemas auditivos</th>
-                                <th>Experiencia</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for result in results %}
-                            {% set total = result.responses|length %}
-                            {% set correct = result.responses|selectattr('correct')|select|list|length %}
-                            {% set accuracy = (correct / total * 100) if total > 0 else 0 %}
-                            <tr>
-                                <td><code>{{ result.user_id[:8] }}...</code></td>
-                                <td>{{ result.start_time.strftime('%Y-%m-%d') if result.start_time }}</td>
-                                <td>
-                                    <span class="badge bg-primary text-white d-inline-block text-center" style="min-width: 8ch;">
-                                        {{ accuracy|round(0) }}%
-                                    </span>
-                                </td>
-                                <td>{{ correct }}/{{ total }}</td>
-                                <td>{{ result.participant_info.age_range }}</td>
-                                <td>{{ result.participant_info.headphones_brand }}</td>
-                                <td>{{ result.participant_info.hearing_problems }}</td>
-                                <td>{{ result.participant_info.audio_experience }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+        <div class="results-card">
+            <div class="table-responsive">
+                <table class="table abx-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Edad</th>
+                            <th>Auriculares</th>
+                            <th>Problemas auditivos</th>
+                            <th>Experiencia</th>
+                            <th>Respuestas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in results %}
+                        {% set total = result.responses|length %}
+                        {% set correct = result.responses|selectattr('correct')|select|list|length %}
+                        {% set accuracy = (correct / total * 100) if total > 0 else 0 %}
+                        <tr>
+                            <td>{{ result.start_time.strftime('%Y-%m-%d') if result.start_time }}</td>
+                            <td>{{ result.participant_info.age_range }}</td>
+                            <td>{{ result.participant_info.headphones_brand }}</td>
+                            <td>{{ result.participant_info.hearing_problems }}</td>
+                            <td>{{ result.participant_info.audio_experience }}</td>
+                            <td>{{ correct }}/{{ total }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
