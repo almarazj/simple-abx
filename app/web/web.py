@@ -1,82 +1,84 @@
-from fastapi import APIRouter, Request, Depends, Body, status, BackgroundTasks
+from fastapi import APIRouter, Request, Depends, Body, BackgroundTasks
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from app.core.config import settings
-from app.database.session import get_firestore_collection
-from app.utils.test_config import generate_test_sequence
-from app.database.models import TestResult
+from app.database.session import collection
 from app.models.schemas import ParticipantInfo, DashboardContextSchema
-import uuid
-from datetime import datetime
+from app.crud.test import (
+    update_test_results, 
+    create_participant_result, 
+    get_test_info,
+    submit_test_response
+)
 
 web_router = APIRouter()
 templates = Jinja2Templates(directory=settings.TEMPLATES_DIR)
 
-def get_templates() -> Jinja2Templates:
-    return templates
 
-
-def save_response_background(collection, user_id, test_result):
-    collection.document(user_id).set(test_result)
-
-
-@web_router.get("/", response_class=HTMLResponse)
+@web_router.get(
+    "/",
+    response_class=HTMLResponse,
+    tags=["Público"],
+    summary="Página de bienvenida",
+    description="Muestra la página de inicio del sistema ABX."
+)
 def welcome(request: Request):
     return templates.TemplateResponse("welcome.html", {"request": request, "config": settings})
 
 
-@web_router.get("/calibration", response_class=HTMLResponse)
+@web_router.get(
+    "/calibration",
+    response_class=HTMLResponse,
+    tags=["Público"],
+    summary="Página de calibración",
+    description="Permite al usuario calibrar su sistema de audio antes de comenzar el test."
+)
 def calibration(request: Request):
     return templates.TemplateResponse("calibration.html", {"request": request,  "config": settings})
 
 
-@web_router.post("/participant_info")
+@web_router.post(
+    "/participant_info",
+    tags=["Test"],
+    summary="Recibe información del participante",
+    description="Guarda la información del participante y redirige a la calibración."
+)
 async def participant_info(
     request: Request,
     form: ParticipantInfo = Depends(ParticipantInfo.as_form),
     background_tasks: BackgroundTasks = None
 ):
-    user_id = str(uuid.uuid4())
-    test_result = TestResult(
-        user_id=user_id,
-        participant_info=form.model_dump(),
-        start_time=datetime.now(),
-        responses=[],
-        test_config={},
-    )
-    collection = get_firestore_collection()
-    result = test_result.to_dict()
-    background_tasks.add_task(save_response_background, collection, user_id, result)
+    user_id, result = create_participant_result(form.model_dump())
+    background_tasks.add_task(update_test_results, user_id, result)
     return RedirectResponse(url=f"/calibration?user_id={user_id}", status_code=303)
 
 
-@web_router.get("/test", response_class=HTMLResponse)
-async def test(request: Request, background_tasks: BackgroundTasks = None):
+@web_router.get(
+    "/test",
+    response_class=HTMLResponse,
+    tags=["Test"],
+    summary="Página de test ABX",
+    description="Muestra la interfaz del test ABX para el usuario actual."
+)
+async def test(
+    request: Request, 
+):
     user_id = request.query_params.get("user_id")
-    collection = get_firestore_collection()
-    doc = collection.document(user_id).get()
-    test_result = doc.to_dict() if doc.exists else None
-
-    if not test_result or not test_result.get("test_config"):
-        comparisons = generate_test_sequence()
-        if not test_result:
-            test_result = TestResult(user_id=user_id, test_config={}, responses=[], participant_info={}).to_dict()
-        test_result["test_config"] = {"comparisons": comparisons}
-        background_tasks.add_task(save_response_background, collection, user_id, test_result)
-    else:
-        comparisons = test_result["test_config"].get("comparisons", [])
-
-    current = len(test_result.get("responses", []))
+    current, comparisons = get_test_info(user_id)
     if current < len(comparisons):
-        comparison = comparisons[current]
         return templates.TemplateResponse("test.html", 
-            {"request": request, "user_id": user_id, "comparison": comparison, "current": current + 1, "total": len(comparisons), "config": settings}
+            {"request": request, "user_id": user_id, "comparison": comparisons[current], "current": current + 1, "total": len(comparisons), "config": settings}
         )
     else:
         return RedirectResponse(url=f"/results?user_id={user_id}", status_code=303)
 
 
-@web_router.post("/submit_response")
+@web_router.post(
+    "/submit_response",
+    tags=["Test"],
+    summary="Envía respuesta de comparación",
+    description="Recibe y almacena la respuesta del usuario para una comparación del test."
+)
 async def submit_response(
     request: Request,
     data: dict = Body(...),
@@ -84,47 +86,21 @@ async def submit_response(
 ):
     user_id = data.get("user_id")
     response = data.get("response")
-    collection = get_firestore_collection()
-    doc = collection.document(user_id).get()
-    test_result = doc.to_dict() if doc.exists else None
-    if not test_result:
-        return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content={"status": "error", "message": "Test no encontrado"}
-        )
-    comparisons = test_result["test_config"].get("comparisons", [])
-    current = len(test_result.get("responses", []))
-    correct = None
-    if current < len(comparisons):
-        correct_answer = comparisons[current].get("correct_answer")
-        correct = (response == correct_answer)
-    test_result["responses"].append({
-        "stimulus": comparisons[current].get("pair_info").get("stimulus_type"),
-        "pulse_density": comparisons[current].get("pair_info").get("pulse_density"),
-        "response": response,
-        "correct": correct
-    })
-    background_tasks.add_task(save_response_background, collection, user_id, test_result)
-    current += 1
-    if current >= len(comparisons):
-        return JSONResponse({
-            "status": "completed",
-            "redirect": f"/results?user_id={user_id}",
-            "current": current,
-            "total": len(comparisons)
-        })
-    return JSONResponse({
-        "status": "continue",
-        "next_comparison": comparisons[current],
-        "current": current + 1,
-        "total": len(comparisons)
-    })
+    result = submit_test_response(user_id, response)
+    if result.status == "completed":
+        return JSONResponse(result.model_dump())
+    return JSONResponse(result.model_dump())
 
 
-@web_router.get("/results", response_class=HTMLResponse)
+@web_router.get(
+    "/results",
+    response_class=HTMLResponse,
+    tags=["Resultados"],
+    summary="Resultados individuales",
+    description="Muestra los resultados individuales del usuario después de completar el test."
+)
 async def results(request: Request):
     user_id = request.query_params.get("user_id")
-    collection = get_firestore_collection()
     doc = collection.document(user_id).get()
     test_result = doc.to_dict() if doc.exists else None
     total_comparisons = 0
@@ -148,9 +124,14 @@ async def results(request: Request):
     )
 
 
-@web_router.get("/admin/dashboard", response_class=HTMLResponse)
+@web_router.get(
+    "/admin/dashboard",
+    response_class=HTMLResponse,
+    tags=["Admin"],
+    summary="Dashboard administrativo",
+    description="Panel administrativo con estadísticas globales y por estímulo de todos los tests realizados."
+)
 async def admin_dashboard(request: Request):
-    collection = get_firestore_collection()
     docs = collection.stream()
     results = []
 

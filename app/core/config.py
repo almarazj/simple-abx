@@ -8,7 +8,7 @@ class Settings(BaseSettings):
 
     # Firestore
     GOOGLE_PROJECT_ID: str = "simple-abx"
-    FIRESTORE_COLLECTION: str = "test-results-3.0"
+    FIRESTORE_COLLECTION: str = "test-results-dev"
 
     HOST: str = "0.0.0.0"
     PORT: int = 8080

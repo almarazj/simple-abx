@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Optional
 from fastapi import Form
 from datetime import datetime
 
-# Schemas para requests
+
 class ParticipantInfo(BaseModel):
     age_range: int
     headphones_brand: str
@@ -26,11 +26,13 @@ class ParticipantInfo(BaseModel):
             audio_experience=audio_experience
         )
 
+
 class ResponseItem(BaseModel):
     stimulus: Optional[str]
     pulse_density: Optional[int]
     response: Optional[str]
     correct: Optional[bool]
+
 
 class TestResultSchema(BaseModel):
     user_id: str
@@ -39,11 +41,13 @@ class TestResultSchema(BaseModel):
     responses: List[ResponseItem]
     test_config: Dict[str, Any]
 
+
 class PairStatsSchema(BaseModel):
     stimulus: str
     pulse_density: int
     correct: float
     total: int
+
 
 class StatsSchema(BaseModel):
     total_tests: int
@@ -51,11 +55,13 @@ class StatsSchema(BaseModel):
     correct_responses: float
     accuracy_percentage: float
 
+
 class PairStimulusSchema(BaseModel):
     label: str
     pulse_density: int
     accuracy: float
     pair_id: str
+
 
 class DashboardContextSchema(BaseModel):
     request: Any  # FastAPI Request object, not validated by Pydantic
@@ -66,3 +72,11 @@ class DashboardContextSchema(BaseModel):
     stimulus_pairs: Dict[str, List[PairStimulusSchema]]
     results: List[TestResultSchema]
     config: Any  # Your settings/config object
+
+
+class SubmitResponseResult(BaseModel):
+    status: str
+    current: int
+    total: int
+    next_comparison: Optional[Any] = None
+    redirect: Optional[str] = None
