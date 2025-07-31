@@ -2,14 +2,14 @@ from fastapi import APIRouter, Request, Depends, Body, BackgroundTasks
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from app.core.config import settings
-from app.core.db_session import collection
 from app.schemas.participant_info import ParticipantInfo
-from app.schemas.dashboard import DashboardContext
 from app.crud.test import (
     update_test_results, 
     create_participant_result, 
     get_test_info,
-    submit_test_response
+    submit_test_response,
+    get_results,
+    get_dashboard_data
 )
 
 web_router = APIRouter()
@@ -88,8 +88,6 @@ async def submit_response(
     user_id = data.get("user_id")
     response = data.get("response")
     result = submit_test_response(user_id, response)
-    if result.status == "completed":
-        return JSONResponse(result.model_dump())
     return JSONResponse(result.model_dump())
 
 
@@ -102,23 +100,7 @@ async def submit_response(
 )
 async def results(request: Request):
     user_id = request.query_params.get("user_id")
-    doc = collection.document(user_id).get()
-    test_result = doc.to_dict() if doc.exists else None
-    total_comparisons = 0
-    correct_responses = 0
-    accuracy_percentage = 0
-    if test_result and test_result.get("responses"):
-        total_comparisons = len(test_result["responses"])
-        correct_responses = sum(
-            1 if r.get("correct") is True else 0.5 if r.get("response") == "tie" else 0
-            for r in test_result.get("responses", [])
-        )
-        accuracy_percentage = round((correct_responses / total_comparisons) * 100, 1) if total_comparisons > 0 else 0
-    stats = {
-        "total_comparisons": total_comparisons,
-        "correct_responses": correct_responses,
-        "accuracy_percentage": accuracy_percentage
-    }
+    stats = get_results(user_id)
     return templates.TemplateResponse(
         "results.html",
         {"request": request, "stats": stats, "config": settings}
@@ -133,97 +115,7 @@ async def results(request: Request):
     description="Panel administrativo con estadísticas globales y por estímulo de todos los tests realizados."
 )
 async def admin_dashboard(request: Request):
-    docs = collection.stream()
-    results = []
-
-    for doc in docs:
-        data = doc.to_dict()
-        if not data:
-            continue
-        data["user_id"] = doc.id
-        results.append(data)
-
-    from collections import defaultdict
-
-    pair_stats = {}
-
-    for result in results:
-        responses = result.get("responses", [])
-        comparisons = result.get("test_config", {}).get("comparisons", [])
-
-        for idx, response in enumerate(responses):
-            if idx >= len(comparisons):
-                continue
-
-            comp = comparisons[idx]
-            pair_info = comp.get("pair_info", {})
-            pair_id = pair_info.get("pair_id", "unknown")
-            stimulus = pair_info.get("stimulus_type", "unknown")
-            pulse_density = pair_info.get("pulse_density", "unknown")
-
-            if pair_id not in pair_stats:
-                pair_stats[pair_id] = {
-                    "stimulus": stimulus,
-                    "pulse_density": pulse_density,
-                    "correct": 0,
-                    "total": 0
-                }
-
-            pair_stats[pair_id]["total"] += 1
-            if response.get("correct") is True:
-                pair_stats[pair_id]["correct"] += 1
-            if response.get("response") == "tie":
-                pair_stats[pair_id]["correct"] += 0.5
-
-    # Estadísticas generales
-    total_responses = sum(len(r.get("responses", [])) for r in results)
-    correct_responses = sum(
-        sum(
-            1 if r.get("correct") is True else 0.5 if r.get("response") == "tie" else 0
-            for r in result.get("responses", [])
-        )
-        for result in results
-    )
-    accuracy_percentage = round((correct_responses / total_responses) * 100, 1) if total_responses > 0 else 0
-
-    stats = {
-        "total_tests": len(results),
-        "total_responses": total_responses,
-        "correct_responses": correct_responses,
-        "accuracy_percentage": accuracy_percentage
-    }
-
-    # Datos para gráficos
-    accuracy_data = defaultdict(list)
-    response_data = defaultdict(list)
-    by_stimulus = defaultdict(list)
-
-    for pair_id, data in pair_stats.items():
-        stimulus = data["stimulus"]
-        density = data["pulse_density"]
-        accuracy = (data["correct"] / data["total"]) * 100 if data["total"] > 0 else 0
-
-        by_stimulus[stimulus].append({
-            "label": f"{density} p/s",
-            "pulse_density": int(density),
-            "accuracy": accuracy,
-            "pair_id": pair_id
-        })
-        accuracy_data[stimulus].append(accuracy)
-        response_data[stimulus].append(data["total"])
-
-    for stim in by_stimulus:
-        by_stimulus[stim] = sorted(by_stimulus[stim], key=lambda x: x["pulse_density"])
-
-    context = DashboardContext(
-        request=request,
-        stats=stats,
-        pair_stats=pair_stats,
-        accuracy_data=dict(accuracy_data),
-        response_data=dict(response_data),
-        stimulus_pairs=dict(by_stimulus),
-        results=results,
-        config=settings,
-    )
-    
-    return templates.TemplateResponse("admin/dashboard.html", context.model_dump())
+    dashboard_data = get_dashboard_data()
+    return templates.TemplateResponse(
+        "admin/dashboard.html", 
+        {"request": request, **dashboard_data.model_dump(), "config": settings})

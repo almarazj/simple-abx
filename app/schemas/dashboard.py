@@ -21,12 +21,10 @@ class PairStimulus(BaseModel):
     accuracy: float
     pair_id: str
 
-class DashboardContext(BaseModel):
-    request: Any  # FastAPI Request object, not validated by Pydantic
+class DashboardData(BaseModel):
     stats: Stats
     pair_stats: Dict[str, PairStats]
     accuracy_data: Dict[str, List[float]]
     response_data: Dict[str, List[int]]
     stimulus_pairs: Dict[str, List[PairStimulus]]
     results: List[TestResult]
-    config: Any
