@@ -2,8 +2,9 @@ from fastapi import APIRouter, Request, Depends, Body, BackgroundTasks
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from app.core.config import settings
-from app.database.session import collection
-from app.models.schemas import ParticipantInfo, DashboardContextSchema
+from app.core.db_session import collection
+from app.schemas.participant_info import ParticipantInfo
+from app.schemas.dashboard import DashboardContext
 from app.crud.test import (
     update_test_results, 
     create_participant_result, 
@@ -214,7 +215,7 @@ async def admin_dashboard(request: Request):
     for stim in by_stimulus:
         by_stimulus[stim] = sorted(by_stimulus[stim], key=lambda x: x["pulse_density"])
 
-    context = DashboardContextSchema(
+    context = DashboardContext(
         request=request,
         stats=stats,
         pair_stats=pair_stats,

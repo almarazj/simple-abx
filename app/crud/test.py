@@ -1,8 +1,7 @@
 import uuid
 from datetime import datetime
-from app.database.models import TestResult
-from app.models.schemas import SubmitResponseResult
-from app.database.session import collection
+from app.schemas.test_results import TestResult, SubmitResponseResult, ResponseItem, TestConfig
+from app.core.db_session import collection
 from app.utils.test_config import generate_test_sequence
 
 
@@ -17,25 +16,25 @@ def create_participant_result(form_data):
         participant_info=form_data,
         start_time=datetime.now(),
         responses=[],
-        test_config={},
+        test_config=TestConfig(comparisons=[]),
     )
-    result_dict = test_result.to_dict()
+    result_dict = test_result.model_dump()
     return user_id, result_dict
 
 
 def create_comparisons(user_id, test_result: TestResult):
     comparisons = generate_test_sequence()
-    test_result.test_config = {"comparisons": comparisons}
-    update_test_results(user_id, test_result.to_dict())
+    test_result.test_config = TestConfig(comparisons=comparisons)
+    update_test_results(user_id, test_result.model_dump())
     return test_result
 
 
 def get_test_info(user_id):
     doc = collection.document(user_id).get()
     test_result = TestResult(**doc.to_dict())
-    if not test_result.test_config:
+    if not test_result.test_config.comparisons:
         test_result = create_comparisons(user_id, test_result)
-    comparisons = test_result.test_config.get("comparisons", [])
+    comparisons = test_result.test_config.comparisons
     current = len(test_result.responses)
     return current, comparisons
 
@@ -44,19 +43,22 @@ def submit_test_response(user_id: str, response: str) -> SubmitResponseResult:
     doc = collection.document(user_id).get()
     test_result = TestResult(**doc.to_dict())
 
-    comparisons = test_result.test_config.get("comparisons", [])
+    comparisons = test_result.test_config.comparisons
     current = len(test_result.responses)
-    correct = None
 
-    correct_answer = comparisons[current].get("correct_answer")
+    comparison = comparisons[current]
+    correct_answer = comparison.correct_answer
     correct = (response == correct_answer)
-    test_result.responses.append({
-        "stimulus": comparisons[current].get("pair_info").get("stimulus_type"),
-        "pulse_density": comparisons[current].get("pair_info").get("pulse_density"),
-        "response": response,
-        "correct": correct
-    })
-    update_test_results(user_id, test_result.to_dict())
+    
+    response_item = ResponseItem(
+        stimulus=comparison.pair_info.stimulus_type,
+        pulse_density=comparison.pair_info.pulse_density,
+        response=response,
+        correct=correct
+    )
+    test_result.responses.append(response_item)
+    update_test_results(user_id, test_result.model_dump())
+    
     current += 1
     if current >= len(comparisons):
         return SubmitResponseResult(
@@ -70,5 +72,5 @@ def submit_test_response(user_id: str, response: str) -> SubmitResponseResult:
             status="continue",
             current=current + 1,
             total=len(comparisons),
-            next_comparison=comparisons[current]
+            next_comparison=comparisons[current].model_dump()
         )
