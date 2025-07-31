@@ -1,4 +1,3 @@
-# app/core/config.py
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
@@ -20,7 +19,7 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
     LOG_FILE: str = "logs/abx_test.log"
-    LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    LOG_FORMAT: str = "%(asctime)s - %(levelname)s - %(message)s"
     
     class Config:
         env_file = ".env"
@@ -48,7 +47,7 @@ class TestingConfig(Settings):
 
 def get_settings() -> Settings:
     """Obtener configuración basada en el entorno"""
-    env = "production"
+    env = "development"
     
     if env == 'production':
         return ProductionConfig()
