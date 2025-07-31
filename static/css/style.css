@@ -2,7 +2,7 @@
 :root {
     /* Tema claro (por defecto) */
     --bg-primary: linear-gradient(0deg, #c7c7c7 0%, #ededed 100%);
-    --bg-secondary: #f8f9fa;
+    --bg-secondary: #eeeff0;
     --bg-card: #ffffff;
     --bg-header: #ffffff;
     --bg-footer: #f8f9fa;
@@ -17,7 +17,6 @@
     --border-header: rgba(0, 0, 0, 0.1);
     --accent-primary: #2c2c2c;
     --options-hover: #2c2c2c;
-    --accent-primary-hover: #e4e4e4;
     --bg-audio-button: #7ad358;
     --accent-success: #2bbc4d;
     --shadow-primary: rgba(0, 0, 0, 0.1);
@@ -31,7 +30,7 @@
 
 [data-theme="dark"] {
     --bg-primary: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    --bg-secondary: #2d2d2d;
+    --bg-secondary: #393838;
     --bg-card: #1e1e1e;
     --bg-header: linear-gradient(135deg, #1a1a1a 0%, #342935 100%);
     --bg-footer: #1a1a1a;
@@ -46,7 +45,6 @@
     --border-header: rgba(255, 255, 255, 0.1);
     --accent-primary: #ffffff;
     --options-hover: #404040;
-    --accent-primary-hover: #696374;
     --accent-success: #10b981;
     --shadow-primary: rgba(0, 0, 0, 0.3);
     --shadow-success: rgba(16, 185, 129, 0.4);
@@ -81,7 +79,7 @@ body {
     margin: 0 auto;
     margin-top: 100px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
 }
 
@@ -558,41 +556,29 @@ h3 {
     font-size: 1.1rem;
     font-weight: 500;
     border-radius: 8px;
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
-    background: var(--bg-secondary);
+    border: none;
+    color: var(--text-primary);
+    background: var(--bg-card);
     transition: 
         background 0.2s, 
         color 0.2s, 
-        border-color 0.2s, 
         box-shadow 0.2s;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-.btn-group .btn:not(:last-child) {
-    border-right: none;
-}
-
-.btn-group .btn.active,
-.btn-group .btn:focus {
-    background: var(--accent-primary);
-    color: var(--btn-primary);
-    border-color: var(--accent-primary);
+.btn-group .btn.active {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
     z-index: 2;
 }
-
-.btn-group .btn:not(.active):hover {
-    border-color: var(--btn-primary);
+.btn-group .btn:focus {
+    outline: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 .btn:focus:not(:focus-visible) {
     outline: none;
     box-shadow: none;
 }
-.btn:focus-visible {
-    outline: 2px solid var(--accent-primary-hover);
-    outline-offset: 2px;
-}
-
 /* Tabla de resultados estilo tarjeta */
 .abx-table {
     width: 100%;

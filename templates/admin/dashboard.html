@@ -68,36 +68,34 @@
 
     <!-- Sección Resultados -->
     <div id="results-section" style="display: none;">
-        <div class="results-card">
-            <div class="table-responsive">
-                <table class="table abx-table align-middle">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Edad</th>
-                            <th>Auriculares</th>
-                            <th>Problemas auditivos</th>
-                            <th>Experiencia</th>
-                            <th>Respuestas</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for result in results %}
+        <div class="table-responsive">
+            <table class="table abx-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Edad</th>
+                        <th>Auriculares</th>
+                        <th>Problemas auditivos</th>
+                        <th>Experiencia</th>
+                        <th>Respuestas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results|sort(attribute='start_time', reverse=True) %}
                         {% set total = result.responses|length %}
                         {% set correct = result.responses|selectattr('correct')|select|list|length %}
                         {% set accuracy = (correct / total * 100) if total > 0 else 0 %}
                         <tr>
-                            <td>{{ result.start_time.strftime('%Y-%m-%d') if result.start_time }}</td>
+                            <td>{{ result.start_time.strftime('%Y-%d-%m %H:%M') }}</td>
                             <td>{{ result.participant_info.age_range }}</td>
                             <td>{{ result.participant_info.headphones_brand }}</td>
                             <td>{{ result.participant_info.hearing_problems }}</td>
                             <td>{{ result.participant_info.audio_experience }}</td>
                             <td>{{ correct }}/{{ total }}</td>
                         </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
