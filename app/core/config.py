@@ -7,7 +7,7 @@ class Settings(BaseSettings):
 
     # Firestore
     GOOGLE_PROJECT_ID: str = "simple-abx"
-    FIRESTORE_COLLECTION: str = "test-results-dev"
+    FIRESTORE_COLLECTION: str = "test-results-3.0"
 
     HOST: str = "0.0.0.0"
     PORT: int = 8080
@@ -47,7 +47,7 @@ class TestingConfig(Settings):
 
 def get_settings() -> Settings:
     """Obtener configuración basada en el entorno"""
-    env = "development"
+    env = "production"
     
     if env == 'production':
         return ProductionConfig()
