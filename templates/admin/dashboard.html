@@ -84,6 +84,8 @@
                     {% for result in results|sort(attribute='start_time', reverse=True) %}
                         {% set total = result.responses|length %}
                         {% set correct = result.responses|selectattr('correct')|select|list|length %}
+                        {% set tie = result.responses|selectattr('response', 'equalto', 'tie')|select|list|length%}
+                        {% set score = correct + tie / 2 %}
                         {% set accuracy = (correct / total * 100) if total > 0 else 0 %}
                         <tr>
                             <td>{{ result.start_time.strftime('%Y-%d-%m %H:%M') }}</td>
@@ -91,7 +93,7 @@
                             <td>{{ result.participant_info.headphones_brand }}</td>
                             <td>{{ result.participant_info.hearing_problems }}</td>
                             <td>{{ result.participant_info.audio_experience }}</td>
-                            <td>{{ correct }}/{{ total }}</td>
+                            <td>{{ score }}/{{ total }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
