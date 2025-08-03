@@ -5,4 +5,5 @@ pydantic_settings
 python-multipart
 cryptography
 google-cloud-firestore
+google-cloud-storage
 starlette==0.40.0

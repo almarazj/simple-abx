@@ -5,6 +5,7 @@ from app.core.config import settings
 from app.core.logging import setup_logging, get_app_logger
 from app.core.exceptions import setup_exception_handlers
 from app.core.db_session import collection
+from app.core.gcloud_storage import storage_router
 from app.web.web import web_router
 
 
@@ -29,5 +30,6 @@ def create_app() -> FastAPI:
     app.mount("/static", StaticFiles(directory=settings.STATIC_FILES_DIR), name="static")
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
     app.include_router(web_router)
+    app.include_router(storage_router)
     
     return app
