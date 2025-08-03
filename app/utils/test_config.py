@@ -1,3 +1,5 @@
+import json
+from google.cloud import storage
 import random
 from pathlib import Path
 from app.schemas.metadata import TestMetadata, AudioPair
@@ -8,12 +10,17 @@ def get_audio_pairs_list():
     Lee el archivo metadata.json y devuelve una lista de diccionarios con los pares de audio
     para el test ABX (drum, vocal, flute, etc).
     """
-    metadata_path = Path('static/audio/test_files/metadata.json')
-    if not metadata_path.exists():
-        raise FileNotFoundError(f"No se encontró el archivo {metadata_path}")
+    client = storage.Client()
+    bucket = client.bucket("abxtest-files")
+    blob = bucket.blob("velvet-noise-test/metadata.json")
 
-    with open('static/audio/test_files/metadata.json', 'r', encoding='utf-8') as f:
-        metadata = TestMetadata.model_validate_json(f.read())
+    if not blob.exists():
+        raise FileNotFoundError("No se encontró el archivo metadata.json en Google Cloud Storage")
+
+    metadata_bytes = blob.download_as_bytes()
+    metadata_str = metadata_bytes.decode("utf-8")
+
+    metadata = TestMetadata.model_validate_json(metadata_str)
 
     stimuli = metadata.stimuli.copy()
     

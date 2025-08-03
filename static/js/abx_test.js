@@ -36,28 +36,6 @@ class ABXAudioController {
         }
     }
 
-    async loadAudioFiles(stimulusA, stimulusB, stimulusX) {
-        await this.initializeAudioContext(); // Initialize context first
-        
-        const basePath = '/static/audio/test_files/';
-        const files = { A: stimulusA, B: stimulusB, X: stimulusX };
-        const cacheBuster = `?v=${Date.now()}`;
-
-        // Stop any current playback and reset
-        this.stopAllSources();
-
-        for (const key of Object.keys(files)) {
-            const url = basePath + files[key] + cacheBuster;
-            const response = await fetch(url);
-            const arrayBuffer = await response.arrayBuffer();
-            this.buffers[key] = await this.context.decodeAudioData(arrayBuffer);
-            console.log(`Audio cargado: ${key}`);
-        }
-
-        this.resetPlayback();
-        this.updateButtonStates();
-    }
-
     updateButtonStates() {
         // Update stimulus buttons
         ['btn-a', 'btn-b', 'btn-x'].forEach(btnId => {
@@ -223,6 +201,62 @@ class ABXAudioController {
         }
     }
 
+    async loadAudioFiles(stimulusA, stimulusB, stimulusX) {
+        await this.initializeAudioContext();
+
+        this.stopAllSources();
+
+        try {
+            const [audioA, audioB, audioX] = await Promise.all([
+                this.fetchAndDecodeAudio(stimulusA),
+                this.fetchAndDecodeAudio(stimulusB),
+                this.fetchAndDecodeAudio(stimulusX)
+            ]);
+
+            this.buffers = {
+                A: audioA,
+                B: audioB,
+                X: audioX
+            };
+
+            console.log("Audios cargados en buffers:", this.buffers);
+
+            this.resetPlayback();
+            this.updateButtonStates();
+        } catch (error) {
+            console.error("Error cargando archivos de audio:", error);
+            alert("Hubo un problema al cargar los audios. Por favor, recarga la página.");
+        }
+    }
+
+    async fetchAndDecodeAudio(filename) {
+        const signedUrlResponse = await fetch(`/audio-url?filename=test_files/${filename}`);
+        const { url } = await signedUrlResponse.json();
+
+        const audioResponse = await fetch(url);
+        const arrayBuffer = await audioResponse.arrayBuffer();
+
+        return await this.context.decodeAudioData(arrayBuffer);
+    }
+
+    preloadNextAudio(comparison) {
+        if (!comparison) return;
+
+        Promise.all([
+            this.fetchAndDecodeAudio(comparison.stimulus_a),
+            this.fetchAndDecodeAudio(comparison.stimulus_b),
+            this.fetchAndDecodeAudio(comparison.stimulus_x)
+        ]).then(([audioA, audioB, audioX]) => {
+            this.nextAudioBuffer = {
+                a: audioA,
+                b: audioB,
+                x: audioX
+            };
+        }).catch(error => {
+            console.error("Error pre-cargando audios:", error);
+        });
+    }
+
     submitResponse(response) {
         if (this.responseTimeoutActive) {
             console.log('Response timeout active - ignoring click');
@@ -273,6 +307,7 @@ class ABXAudioController {
                     window.location.href = data.redirect;
                 }, 1000);
             } else if (data.status === "continue") {
+                this.preloadNextAudio(data.next_comparison);
                 this.showResponseConfirmation(response, data.current, data.total);
                 setTimeout(() => {
                     this.loadNextComparison(data.next_comparison, data.current, data.total);
@@ -329,7 +364,7 @@ class ABXAudioController {
                     progressFill.style.width = percentage + '%';
                     progressText.textContent = `Comparación ${current} de ${total}`;
                 }
-            }, 200); // Wait for button fade out
+            }, 300); // Wait for button fade out
         }
     }
 
@@ -358,7 +393,7 @@ class ABXAudioController {
                         if (btn) btn.disabled = false;
                     });
                 }, 50); // Small delay for smooth transition
-            }, 200); // Wait for confirmation fade out
+            }, 300); // Wait for confirmation fade out
         }
     }
 
@@ -403,91 +438,61 @@ class ABXAudioController {
 }
 
 document.addEventListener('DOMContentLoaded', async function() {
-    // Prevent multiple controller instances
     if (window.abxController) {
         console.warn('ABX Controller already initialized');
         return;
     }
-    
+
     let abxController = null;
+    let calibrationBuffer = null;
+    let calibrationContext = null;
+
+    async function loadCalibrationBuffer() {
+        if (calibrationBuffer) return calibrationBuffer;
+        if (!calibrationContext) {
+            calibrationContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        const res = await fetch('/audio-url?filename=calibration/calibration_tone.wav');
+        const { url } = await res.json();
+        const response = await fetch(url);
+
+        const arrayBuffer = await response.arrayBuffer();
+        calibrationBuffer = await calibrationContext.decodeAudioData(arrayBuffer);
+        return calibrationBuffer;
+    }
 
     const isTestPage = document.getElementById('btn-a') !== null;
-    if (isTestPage && window.comparisonData && window.abxController) {
-        // Precarga automática de los audios de la primera comparación
-        await window.abxController.loadAudioFiles(
+    const isCalibrationPage = document.getElementById('start-test-btn') !== null;
+
+    if (isTestPage && window.comparisonData && !window.abxController) {
+        abxController = new ABXAudioController();
+        window.abxController = abxController;
+        abxController.pendingComparison = window.comparisonData;
+
+        await abxController.loadAudioFiles(
             window.comparisonData.stimulus_a,
             window.comparisonData.stimulus_b,
             window.comparisonData.stimulus_x
         );
     }
-    const isCalibrationPage = document.getElementById('start-test-btn') !== null;
-    
-    if (isTestPage || isCalibrationPage) {
+
+    if (isCalibrationPage) {
         abxController = new ABXAudioController();
         window.abxController = abxController;
-        
-        if (isTestPage) {
 
-            const comparisonData = window.comparisonData;
-            if (comparisonData) {
-                abxController.pendingComparison = comparisonData;
-            } else {
-                // No comparison data available - disable response buttons and show warning
-                console.warn('No comparison data available - disabling response buttons');
-                
-                // Disable all response buttons
-                ['response-a', 'response-b', 'response-tie'].forEach(id => {
-                    const btn = document.getElementById(id);
-                    if (btn) {
-                        btn.disabled = true;
-                        btn.style.opacity = '0.5';
-                        btn.style.cursor = 'not-allowed';
-                        btn.title = 'No hay datos de comparación disponibles';
-                    }
-                });
-                
-                // Disable audio buttons too
-                ['btn-a', 'btn-b', 'btn-x'].forEach(id => {
-                    const btn = document.getElementById(id);
-                    if (btn) {
-                        btn.disabled = true;
-                        btn.style.opacity = '0.5';
-                        btn.style.cursor = 'not-allowed';
-                        btn.title = 'No hay datos de comparación disponibles';
-                    }
-                });
-                
-                // Show error message to user
-                const testContent = document.querySelector('.test-container');
-                if (testContent) {
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'alert alert-warning';
-                    errorDiv.style.cssText = 'background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center;';
-                    errorDiv.innerHTML = '<strong>⚠️ Error:</strong> No hay datos de comparación disponibles. Por favor, <a href="/" style="color: #856404; text-decoration: underline;">vuelve al inicio</a> e inicia el test correctamente.';
-                    testContent.insertBefore(errorDiv, testContent.firstChild);
-                }
-            }
-        }
+        loadCalibrationBuffer().then(() => {
+            console.log("Audio de calibración precargado.");
+        }).catch(err => {
+            console.error("Error al precargar el audio de calibración:", err);
+        });
     }
 
-    // --- CALIBRACIÓN SOLO WEB AUDIO API ---
+    // --- Botón de calibración ---
     const playCalibrationBtn = document.getElementById('play-calibration');
     if (playCalibrationBtn) {
-        let calibrationBuffer = null;
         let calibrationSource = null;
-        let calibrationContext = null;
         let isPlaying = false;
-
-        async function loadCalibrationBuffer() {
-            if (calibrationBuffer) return calibrationBuffer;
-            if (!calibrationContext) {
-                calibrationContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            const response = await fetch('/static/audio/calibration/calibration_tone.wav');
-            const arrayBuffer = await response.arrayBuffer();
-            calibrationBuffer = await calibrationContext.decodeAudioData(arrayBuffer);
-            return calibrationBuffer;
-        }
 
         async function playCalibration() {
             if (isPlaying) {
@@ -498,18 +503,21 @@ document.addEventListener('DOMContentLoaded', async function() {
                 isPlaying = false;
                 return;
             }
-            
+
             try {
                 playCalibrationBtn.textContent = 'Pausar Audio de Calibración';
+
                 if (!calibrationContext) {
                     calibrationContext = new (window.AudioContext || window.webkitAudioContext)();
                 }
+
                 const buffer = await loadCalibrationBuffer();
                 calibrationSource = calibrationContext.createBufferSource();
                 calibrationSource.buffer = buffer;
                 calibrationSource.connect(calibrationContext.destination);
                 calibrationSource.start(0);
                 isPlaying = true;
+
                 calibrationSource.onended = function() {
                     playCalibrationBtn.textContent = 'Reproducir Audio de Calibración';
                     isPlaying = false;
