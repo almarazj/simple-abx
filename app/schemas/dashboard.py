@@ -3,6 +3,15 @@ from typing import List, Dict, Any
 
 from app.schemas.test_results import TestResult
 
+class ResponsesOverview(BaseModel):
+    start_time: str
+    age_range: int
+    headphones_brand: str
+    hearing_problems: bool
+    audio_experience: str
+    score: float
+    total: int
+
 class PairStats(BaseModel):
     stimulus: str
     pulse_density: str
@@ -18,13 +27,12 @@ class Stats(BaseModel):
 class PairStimulus(BaseModel):
     label: str
     pulse_density: int
-    accuracy: float
+    accuracy: int
     pair_id: str
+    correct: int
+    total: int
 
 class DashboardData(BaseModel):
     stats: Stats
-    pair_stats: Dict[str, PairStats]
-    accuracy_data: Dict[str, List[float]]
-    response_data: Dict[str, List[int]]
     stimulus_pairs: Dict[str, List[PairStimulus]]
-    results: List[TestResult]
+    responses: List[ResponsesOverview]

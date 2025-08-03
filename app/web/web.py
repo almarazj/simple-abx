@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Request, Depends, Body, BackgroundTasks
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
 from app.core.config import settings
 from app.schemas.participant_info import ParticipantInfo
+from app.crud.results import export_to_csv
 from app.crud.test import (
     update_test_results, 
     create_participant_result, 
@@ -119,3 +120,19 @@ async def admin_dashboard(request: Request):
     return templates.TemplateResponse(
         "admin/dashboard.html", 
         {"request": request, **dashboard_data.model_dump(), "config": settings})
+
+
+@web_router.get(
+    "/admin/export_csv",
+    response_class=FileResponse,
+    tags=["Admin"],
+    summary="Exportar resultados",
+    description="Genera y descarga un archivo CSV con los resultados de los tests."
+)
+def export_csv():
+    filepath = export_to_csv()
+    return FileResponse(
+        path=filepath,
+        filename="abx_resultados.csv",
+        media_type="text/csv"
+    )

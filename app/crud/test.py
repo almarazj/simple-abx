@@ -7,6 +7,7 @@ from app.schemas.dashboard import PairStats, Stats, PairStimulus, DashboardData
 
 from app.core.db_session import collection
 from app.utils.test_config import generate_test_sequence
+from app.utils.formatters import format_dashboard_results
 
 
 def update_test_results(user_id, test_result):
@@ -167,13 +168,15 @@ def get_dashboard_data():
     for pair_id, data in pair_stats.items():
         stimulus = data.stimulus
         density = data.pulse_density
-        accuracy = (data.correct / data.total) * 100 if data.total > 0 else 0
+        accuracy = int((data.correct / data.total) * 100) if data.total > 0 else 0
 
         by_stimulus[stimulus].append(PairStimulus(
             label=f"{density} p/s",
             pulse_density=int(density),
             accuracy=accuracy,
-            pair_id=pair_id
+            pair_id=pair_id,
+            correct=int(data.correct),
+            total=data.total
         ))
         accuracy_data[stimulus].append(accuracy)
         response_data[stimulus].append(data.total)
@@ -183,10 +186,7 @@ def get_dashboard_data():
 
     dashboard_data = DashboardData(
         stats=stats,
-        pair_stats=pair_stats,
-        accuracy_data=dict(accuracy_data),
-        response_data=dict(response_data),
         stimulus_pairs=dict(by_stimulus),
-        results=results,
+        responses=format_dashboard_results(results),
     )
     return dashboard_data
