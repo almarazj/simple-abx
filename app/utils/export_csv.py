@@ -27,7 +27,7 @@ def export_results_to_csv(test_results: list[TestResult], output_path: str):
             for r in result.responses:
                 if r.stimulus and r.pulse_density:
                     col_name = f"{r.stimulus}_{r.pulse_density}"
-                    row[col_name] = r.correct
+                    row[col_name] = 1 if r.correct else 0
 
             writer.writerow(row)
             
