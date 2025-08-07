@@ -17,11 +17,6 @@ web_router = APIRouter()
 templates = Jinja2Templates(directory=settings.TEMPLATES_DIR)
 
 
-@web_router.get("/sitemap.xml", response_class=FileResponse)
-def sitemap():
-    return FileResponse("static/sitemap.xml", media_type="application/xml")
-
-
 @web_router.get(
     "/",
     response_class=HTMLResponse,
