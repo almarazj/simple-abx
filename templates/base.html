@@ -30,7 +30,13 @@
     <!-- Header opcional -->
     {% block header %}
     <header class="main-header">
-        <div class="header-container">
+        <div class="header-container d-flex align-items-center">
+            <a href="{{ url_for('welcome') }}" class="d-flex align-items-center text-decoration-none">
+                <div class="logo-css-blend me-3">
+                    <div class="circle blue"></div>
+                    <div class="circle pink"></div>
+                </div>
+            </a>
             <h1 class="header-title">
                 <a href="{{ url_for('welcome') }}">Test ABX</a>
             </h1>

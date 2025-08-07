@@ -69,6 +69,34 @@ body {
     color: var(--text-primary);
     transition: background 0.3s, color 0.3s;
 }
+
+/* Logo CSS Blend */
+.logo-css-blend {
+  position: relative;
+  width: 50px;
+  height: 30px;
+}
+
+.logo-css-blend .circle {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  top: 0;
+  mix-blend-mode: multiply;
+  opacity: 0.95;
+}
+
+.logo-css-blend .blue {
+  background-color: #4a90e2;
+  left: 0;
+}
+
+.logo-css-blend .pink {
+  background-color: #e94e77;
+  right: 0;
+}
+
 .main-content, .container {
     flex: 1 0 auto;
 }

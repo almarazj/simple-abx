@@ -7,4 +7,4 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
     volumes:
       - .:/app
-    command: sh -c "exec uvicorn main:app --host 0.0.0.0 --port 8080 --reload"
+    command: sh -c "exec uvicorn main:app --host 0.0.0.0 --port 8080"
