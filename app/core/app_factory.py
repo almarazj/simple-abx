@@ -12,7 +12,7 @@ from app.web.web import web_router
 def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.APP_NAME,
-        description="Aplicación para tests de audio ABX",
+        description=settings.APP_DESCRIPTION,
         version=settings.VERSION,
         debug=settings.DEBUG,
         docs_url="/docs",
@@ -27,7 +27,7 @@ def create_app() -> FastAPI:
 
     setup_exception_handlers(app)
     
-    app.mount("/static", StaticFiles(directory=settings.STATIC_FILES_DIR), name="static")
+    app.mount("/static", StaticFiles(directory="static"), name="static")
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
     app.include_router(web_router)
     app.include_router(storage_router)
