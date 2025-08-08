@@ -9,12 +9,104 @@ class ABXAudioController {
         this.playbackStartTime = 0;
         this.audioOffset = 0;
         this.isPlaying = false;
-        this.volume = 0.7;
+        this.volume = 1;
         this.crossfadeDuration = 0.1; // 100ms crossfade
         this.gainNodes = {}; // Will be initialized when context is created
-
-        this.responseTimeoutActive = false; // Prevent rapid response clicks
         this.setupEventListeners();
+    }
+
+    getButtonsContainer() {
+        const a = document.getElementById('btn-a');
+        const b = document.getElementById('btn-b');
+        const x = document.getElementById('btn-x');
+        if (!a) return document.body;
+
+        let container = a.parentElement;
+        const containsAll = (el) => el && el.contains(a) && (!b || el.contains(b)) && (!x || el.contains(x));
+        while (container && !containsAll(container)) {
+            container = container.parentElement;
+        }
+        return container || document.body;
+    }
+
+    setLoading(isLoading, message = 'Cargando audios...') {
+        // Unificar: deshabilitar botones A/B/X y mostrar overlay con transición suave
+        const btnIds = ['btn-a', 'btn-b', 'btn-x', 'response-a', 'response-b', 'response-tie'];
+        btnIds.forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) btn.disabled = isLoading;
+        });
+
+        const container = this.getButtonsContainer();
+
+        // Crear el overlay si no existe
+        if (!this.loadingOverlayEl) {
+            const pos = window.getComputedStyle(container).position;
+            if (pos === 'static' || !pos) container.style.position = 'relative';
+
+            const overlay = document.createElement('div');
+            overlay.id = 'audio-loading-overlay';
+            overlay.style.position = 'absolute';
+            overlay.style.inset = '0';
+            overlay.style.display = 'none';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.background = 'rgba(255,255,255,0.7)';
+            overlay.style.backdropFilter = 'blur(1px)';
+            overlay.style.borderRadius = '8px';
+            overlay.style.zIndex = '10';
+            overlay.style.userSelect = 'none';
+            overlay.style.pointerEvents = 'auto'; // bloquea clics a los botones
+            overlay.style.opacity = '0';
+            overlay.style.transform = 'scale(0.98)';
+            overlay.style.transition = 'opacity 150ms ease, transform 150ms ease';
+
+            const label = document.createElement('div');
+            label.id = 'audio-loading-label';
+            label.textContent = message;
+            label.style.fontSize = '0.95rem';
+            label.style.color = '#333';
+            label.style.fontWeight = '500';
+            overlay.appendChild(label);
+
+            container.appendChild(overlay);
+            this.loadingOverlayEl = overlay;
+            this.loadingOverlayLabel = label;
+        }
+
+        // Actualiza el mensaje si cambia
+        if (this.loadingOverlayLabel && typeof message === 'string') {
+            this.loadingOverlayLabel.textContent = message;
+        }
+
+        // Transiciones: fade-in/fade-out con display controlado
+        if (isLoading) {
+            if (this.loadingOverlayEl.style.display !== 'flex') {
+                this.loadingOverlayEl.style.display = 'flex';
+                this.loadingOverlayEl.style.pointerEvents = 'auto';
+                // forzar reflow antes de animar
+                requestAnimationFrame(() => {
+                    this.loadingOverlayEl.style.opacity = '1';
+                    this.loadingOverlayEl.style.transform = 'scale(1)';
+                });
+            } else {
+                this.loadingOverlayEl.style.pointerEvents = 'auto';
+                this.loadingOverlayEl.style.opacity = '1';
+                this.loadingOverlayEl.style.transform = 'scale(1)';
+            }
+        } else {
+            // Liberar clics inmediatamente
+            this.loadingOverlayEl.style.pointerEvents = 'none';
+            this.loadingOverlayEl.style.opacity = '0';
+            this.loadingOverlayEl.style.transform = 'scale(0.98)';
+            // Fallback de ocultado tras la transición (150ms + margen)
+            const overlayRef = this.loadingOverlayEl;
+            setTimeout(() => {
+                if (overlayRef && overlayRef.style.opacity === '0') {
+                    overlayRef.style.display = 'none';
+                }
+            }, 200);
+        }
     }
 
     async initializeAudioContext() {
@@ -205,6 +297,7 @@ class ABXAudioController {
         await this.initializeAudioContext();
 
         this.stopAllSources();
+        this.setLoading(true);
 
         try {
             const [audioA, audioB, audioX] = await Promise.all([
@@ -226,6 +319,8 @@ class ABXAudioController {
         } catch (error) {
             console.error("Error cargando archivos de audio:", error);
             alert("Hubo un problema al cargar los audios. Por favor, recarga la página.");
+        } finally {
+            this.setLoading(false); // Rehabilita botones y oculta indicador
         }
     }
 
@@ -258,10 +353,6 @@ class ABXAudioController {
     }
 
     submitResponse(response) {
-        if (this.responseTimeoutActive) {
-            console.log('Response timeout active - ignoring click');
-            return;
-        }
 
         if (!window.comparisonData && !this.pendingComparison) {
             console.error('No comparison data available - cannot submit response');
@@ -269,16 +360,9 @@ class ABXAudioController {
             return;
         }
 
-        this.responseTimeoutActive = true;
-        this.resetPlayback();
-        // No mostrar confirmación aquí, esperar a la respuesta del backend
-        // this.showResponseConfirmation(response);
-        
-        // Deshabilita los botones de estímulo
-        ['btn-a', 'btn-b', 'btn-x'].forEach(id => {
-            const btn = document.getElementById(id);
-            if (btn) btn.disabled = true;
-        });
+    this.resetPlayback();
+    // Unificado: muestra overlay y deshabilita botones de audio
+    this.setLoading(true, 'Cargando audios...');
 
         // Obtén el user_id de la URL
         const params = new URLSearchParams(window.location.search);
@@ -298,11 +382,13 @@ class ABXAudioController {
             }
             return response.json();
         })
-        .then(data => {
+    .then(data => {
             // Mostrar confirmación y avanzar barra de progreso al mismo tiempo
             if (data.status === "completed" && data.redirect) {
                 window.testFinished = true; // Evita el warning en el último submit
                 this.showResponseConfirmation(response, data.current || 1, data.total || 1);
+        // Oculta overlay ya que no cargaremos más audios
+        this.setLoading(false);
                 setTimeout(() => {
                     window.location.href = data.redirect;
                 }, 1000);
@@ -314,13 +400,12 @@ class ABXAudioController {
                 }, 1000);
             }
         })
-        .catch(error => {
+    .catch(error => {
             console.error('Error enviando respuesta:', error);
             alert('Error enviando respuesta. Por favor intenta nuevamente.');
             this.hideResponseConfirmation();
-            setTimeout(() => {
-                this.responseTimeoutActive = false;
-            }, 500);
+        // Rehabilitar UI si falló
+        this.setLoading(false);
         });
     }
 
@@ -388,10 +473,6 @@ class ABXAudioController {
                 
                 setTimeout(() => {
                     responseOptions.style.opacity = '1';
-                    ['btn-a', 'btn-b', 'btn-x'].forEach(id => {
-                        const btn = document.getElementById(id);
-                        if (btn) btn.disabled = false;
-                    });
                 }, 50); // Small delay for smooth transition
             }, 300); // Wait for confirmation fade out
         }
@@ -405,12 +486,8 @@ class ABXAudioController {
             const btn = document.getElementById(id);
             if (btn) btn.classList.remove('current-stimulus');
         });
-        setTimeout(() => {
-            // Hide confirmation and show response buttons again
-            this.hideResponseConfirmation();
-            // Clear response timeout to allow new responses
-            this.responseTimeoutActive = false;
-        }, 500);
+        // Oculta confirmación; los botones se rehabilitan cuando setLoading(false)
+        this.hideResponseConfirmation();
     }
 
     setupEventListeners() {
