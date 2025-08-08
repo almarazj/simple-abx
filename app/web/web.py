@@ -3,18 +3,20 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
 from app.core.config import settings
 from app.schemas.participant_info import ParticipantInfo
-from app.crud.results import export_to_csv
+from app.crud.results import (
+    export_to_csv,
+    get_dashboard_data
+)
 from app.crud.test import (
     update_test_results, 
     create_participant_result, 
     get_test_info,
     submit_test_response,
     get_results,
-    get_dashboard_data
 )
 
 web_router = APIRouter()
-templates = Jinja2Templates(directory=settings.TEMPLATES_DIR)
+templates = Jinja2Templates(directory="templates")
 
 
 @web_router.get(
@@ -84,7 +86,6 @@ async def test(
 async def submit_response(
     request: Request,
     data: dict = Body(...),
-    background_tasks: BackgroundTasks = None
 ):
     user_id = data.get("user_id")
     response = data.get("response")

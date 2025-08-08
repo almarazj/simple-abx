@@ -782,3 +782,33 @@ button:disabled,
     cursor: not-allowed;
     filter: grayscale(60%);
 }
+
+/* Overlay de carga sobre los controles de audio */
+.audio-loading-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex; /* mantener en flujo para permitir transición */
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card); /* toma el color del tema */
+    backdrop-filter: blur(1px);
+    border-radius: 8px;
+    z-index: 10;
+    user-select: none;
+    pointer-events: none; /* por defecto no intercepta, solo cuando show */
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.98);
+    transition: opacity 300ms ease, transform 300ms ease, visibility 300ms ease;
+}
+.audio-loading-overlay.show {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+    pointer-events: auto; /* bloquea clics debajo mientras carga */
+}
+.audio-loading-overlay #audio-loading-label {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}

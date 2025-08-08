@@ -9,12 +9,81 @@ class ABXAudioController {
         this.playbackStartTime = 0;
         this.audioOffset = 0;
         this.isPlaying = false;
-        this.volume = 0.7;
+        this.volume = 1;
         this.crossfadeDuration = 0.1; // 100ms crossfade
         this.gainNodes = {}; // Will be initialized when context is created
-
-        this.responseTimeoutActive = false; // Prevent rapid response clicks
         this.setupEventListeners();
+    }
+
+    getButtonsContainer() {
+        const a = document.getElementById('btn-a');
+        const b = document.getElementById('btn-b');
+        const x = document.getElementById('btn-x');
+        if (!a) return document.body;
+
+        let container = a.parentElement;
+        const containsAll = (el) => el && el.contains(a) && (!b || el.contains(b)) && (!x || el.contains(x));
+        while (container && !containsAll(container)) {
+            container = container.parentElement;
+        }
+        return container || document.body;
+    }
+
+    setLoading(isLoading, message = 'Cargando audios...', options = {}) {
+        // Unificar: permite targetear contenedor y controles específicos
+        const defaultIds = ['btn-a', 'btn-b', 'btn-x', 'response-a', 'response-b', 'response-tie'];
+        const disableIds = Array.isArray(options.disableIds) ? options.disableIds : defaultIds;
+        const hideIds = Array.isArray(options.hideIds) ? options.hideIds : [];
+        const container = options.container instanceof HTMLElement ? options.container : this.getButtonsContainer();
+
+        // Deshabilitar controles solicitados
+        disableIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = isLoading;
+        });
+
+        // Ocultar/mostrar elementos solicitados (sin romper layout)
+        hideIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.visibility = isLoading ? 'hidden' : '';
+        });
+
+        // Crear el overlay si no existe
+    if (!this.loadingOverlayEl) {
+            const pos = window.getComputedStyle(container).position;
+            if (pos === 'static' || !pos) container.style.position = 'relative';
+
+            const overlay = document.createElement('div');
+            overlay.id = 'audio-loading-overlay';
+            overlay.className = 'audio-loading-overlay';
+
+            const label = document.createElement('div');
+            label.id = 'audio-loading-label';
+            label.textContent = message;
+            overlay.appendChild(label);
+
+            container.appendChild(overlay);
+            this.loadingOverlayEl = overlay;
+            this.loadingOverlayLabel = label;
+        } else if (this.loadingOverlayEl.parentElement !== container) {
+            // Mover overlay si el contenedor cambió
+            const pos = window.getComputedStyle(container).position;
+            if (pos === 'static' || !pos) container.style.position = 'relative';
+            this.loadingOverlayEl.parentElement.removeChild(this.loadingOverlayEl);
+            container.appendChild(this.loadingOverlayEl);
+        }
+
+        // Actualiza el mensaje si cambia
+        if (this.loadingOverlayLabel && typeof message === 'string') {
+            this.loadingOverlayLabel.textContent = message;
+        }
+
+        // Transiciones controladas por CSS mediante la clase .show
+    if (isLoading) {
+            this.loadingOverlayEl.classList.add('show');
+        } else {
+            this.loadingOverlayEl.classList.remove('show');
+        }
     }
 
     async initializeAudioContext() {
@@ -205,6 +274,7 @@ class ABXAudioController {
         await this.initializeAudioContext();
 
         this.stopAllSources();
+        this.setLoading(true);
 
         try {
             const [audioA, audioB, audioX] = await Promise.all([
@@ -226,6 +296,8 @@ class ABXAudioController {
         } catch (error) {
             console.error("Error cargando archivos de audio:", error);
             alert("Hubo un problema al cargar los audios. Por favor, recarga la página.");
+        } finally {
+            this.setLoading(false); // Rehabilita botones y oculta indicador
         }
     }
 
@@ -258,10 +330,6 @@ class ABXAudioController {
     }
 
     submitResponse(response) {
-        if (this.responseTimeoutActive) {
-            console.log('Response timeout active - ignoring click');
-            return;
-        }
 
         if (!window.comparisonData && !this.pendingComparison) {
             console.error('No comparison data available - cannot submit response');
@@ -269,16 +337,9 @@ class ABXAudioController {
             return;
         }
 
-        this.responseTimeoutActive = true;
-        this.resetPlayback();
-        // No mostrar confirmación aquí, esperar a la respuesta del backend
-        // this.showResponseConfirmation(response);
-        
-        // Deshabilita los botones de estímulo
-        ['btn-a', 'btn-b', 'btn-x'].forEach(id => {
-            const btn = document.getElementById(id);
-            if (btn) btn.disabled = true;
-        });
+    this.resetPlayback();
+    // Unificado: muestra overlay y deshabilita botones de audio
+    this.setLoading(true, 'Cargando audios...');
 
         // Obtén el user_id de la URL
         const params = new URLSearchParams(window.location.search);
@@ -298,11 +359,13 @@ class ABXAudioController {
             }
             return response.json();
         })
-        .then(data => {
+    .then(data => {
             // Mostrar confirmación y avanzar barra de progreso al mismo tiempo
             if (data.status === "completed" && data.redirect) {
                 window.testFinished = true; // Evita el warning en el último submit
                 this.showResponseConfirmation(response, data.current || 1, data.total || 1);
+        // Oculta overlay ya que no cargaremos más audios
+        this.setLoading(false);
                 setTimeout(() => {
                     window.location.href = data.redirect;
                 }, 1000);
@@ -314,13 +377,12 @@ class ABXAudioController {
                 }, 1000);
             }
         })
-        .catch(error => {
+    .catch(error => {
             console.error('Error enviando respuesta:', error);
             alert('Error enviando respuesta. Por favor intenta nuevamente.');
             this.hideResponseConfirmation();
-            setTimeout(() => {
-                this.responseTimeoutActive = false;
-            }, 500);
+        // Rehabilitar UI si falló
+        this.setLoading(false);
         });
     }
 
@@ -388,10 +450,6 @@ class ABXAudioController {
                 
                 setTimeout(() => {
                     responseOptions.style.opacity = '1';
-                    ['btn-a', 'btn-b', 'btn-x'].forEach(id => {
-                        const btn = document.getElementById(id);
-                        if (btn) btn.disabled = false;
-                    });
                 }, 50); // Small delay for smooth transition
             }, 300); // Wait for confirmation fade out
         }
@@ -405,12 +463,8 @@ class ABXAudioController {
             const btn = document.getElementById(id);
             if (btn) btn.classList.remove('current-stimulus');
         });
-        setTimeout(() => {
-            // Hide confirmation and show response buttons again
-            this.hideResponseConfirmation();
-            // Clear response timeout to allow new responses
-            this.responseTimeoutActive = false;
-        }, 500);
+        // Oculta confirmación; los botones se rehabilitan cuando setLoading(false)
+        this.hideResponseConfirmation();
     }
 
     setupEventListeners() {
@@ -481,10 +535,34 @@ document.addEventListener('DOMContentLoaded', async function() {
         abxController = new ABXAudioController();
         window.abxController = abxController;
 
+        // Oculta el botón de calibración mientras carga el buffer por primera vez
+        const calibrationBtn = document.getElementById('play-calibration');
+        if (calibrationBtn) {
+            abxController.setLoading(true, 'Cargando audios...', {
+                container: calibrationBtn.parentElement || document.body,
+                disableIds: [],
+                hideIds: ['play-calibration']
+            });
+        }
+
         loadCalibrationBuffer().then(() => {
             console.log("Audio de calibración precargado.");
+            if (calibrationBtn) {
+                abxController.setLoading(false, undefined, {
+                    container: calibrationBtn.parentElement || document.body,
+                    disableIds: [],
+                    hideIds: ['play-calibration']
+                });
+            }
         }).catch(err => {
             console.error("Error al precargar el audio de calibración:", err);
+            if (calibrationBtn) {
+                abxController.setLoading(false, undefined, {
+                    container: calibrationBtn.parentElement || document.body,
+                    disableIds: [],
+                    hideIds: ['play-calibration']
+                });
+            }
         });
     }
 
@@ -510,6 +588,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (!calibrationContext) {
                     calibrationContext = new (window.AudioContext || window.webkitAudioContext)();
                 }
+                // Ocultar el botón mientras se prepara el audio
+                abxController.setLoading(true, 'Cargando audios...', {
+                    container: playCalibrationBtn.parentElement || document.body,
+                    disableIds: [],
+                    hideIds: ['play-calibration']
+                });
 
                 const buffer = await loadCalibrationBuffer();
                 calibrationSource = calibrationContext.createBufferSource();
@@ -517,6 +601,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                 calibrationSource.connect(calibrationContext.destination);
                 calibrationSource.start(0);
                 isPlaying = true;
+
+                // Mostrar nuevamente el botón durante la reproducción
+                abxController.setLoading(false, undefined, {
+                    container: playCalibrationBtn.parentElement || document.body,
+                    disableIds: [],
+                    hideIds: ['play-calibration']
+                });
 
                 calibrationSource.onended = function() {
                     playCalibrationBtn.textContent = 'Reproducir Audio de Calibración';
@@ -526,6 +617,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 console.error('Error playing calibration:', error);
                 playCalibrationBtn.textContent = 'Reproducir Audio de Calibración';
                 isPlaying = false;
+                abxController.setLoading(false, undefined, {
+                    container: playCalibrationBtn.parentElement || document.body,
+                    disableIds: [],
+                    hideIds: ['play-calibration']
+                });
             }
         }
 
