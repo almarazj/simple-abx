@@ -8,30 +8,28 @@ class Settings(BaseSettings):
 
     # Firestore
     GOOGLE_PROJECT_ID: str = "simple-abx"
-    FIRESTORE_COLLECTION: str = "test-results-dev"
     
     # Logging
     LOG_LEVEL: str = "INFO"
     LOG_FILE: str = "logs/abx_test.log"
     LOG_FORMAT: str = "%(asctime)s - %(levelname)s - %(message)s"
 
-
 class DevelopmentConfig(Settings):
     """Configuración para desarrollo"""
     DEBUG: bool = True
     LOG_LEVEL: str = "DEBUG"
-
+    FIRESTORE_COLLECTION: str = "test-results-dev"
 
 class ProductionConfig(Settings):
     """Configuración para producción"""
     DEBUG: bool = False
     LOG_LEVEL: str = "WARNING"
-
+    FIRESTORE_COLLECTION: str = "test-results-3.0"
 
 def get_settings() -> Settings:
-    """Obtener configuración basada en el entorno"""
+
     env = os.getenv("APP_ENV", "dev").lower()
-    
+
     if env == "prod":
         return ProductionConfig()
     else:

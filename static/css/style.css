@@ -105,16 +105,15 @@ body {
 .main-content {
     max-width: 1200px;
     margin: 0 auto;
-    margin-top: 100px;
     display: flex;
     align-items: flex-start;
     justify-content: center;
+    padding: 40px;
 }
 
 /* Header y Footer */
 .main-header {
-    position: fixed;
-    top: 0; left: 0; right: 0;
+    position: static;
     background: var(--bg-header);
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     z-index: 1000;
@@ -205,7 +204,6 @@ body {
     color: var(--text-footer);
     text-align: center;
     padding: 15px 0;
-    margin-top: 40px;
     border-top: 1px solid var(--border-secondary);
     transition: background 0.3s, color 0.3s, border-color 0.3s;
     flex-shrink: 0;
@@ -628,6 +626,8 @@ h3 {
     font-weight: 400;
     padding: 10px 8px;
     text-align: center;
+    white-space: nowrap;
+    
 }
 .abx-table th {
     font-weight: 600;
@@ -669,9 +669,7 @@ h3 {
         position: static;
     }
     .main-content {
-        padding: 0 20px; 
-        margin-top: 20px;
-        margin-bottom: 20px;
+        padding: 40px; 
         min-height: calc(100vh - 110px);
         background-color: var(--bg-card);
         box-sizing: border-box;
@@ -748,7 +746,6 @@ h3 {
     .main-footer { 
         padding: 10px 0; 
         position: static;
-        left: 0; right: 0; bottom: 0;
         background: var(--bg-footer);
         z-index: 1001;
         border-top: 1px solid var(--border-secondary);
