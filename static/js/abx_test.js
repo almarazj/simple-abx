@@ -29,49 +29,48 @@ class ABXAudioController {
         return container || document.body;
     }
 
-    setLoading(isLoading, message = 'Cargando audios...') {
-        // Unificar: deshabilitar botones A/B/X y mostrar overlay con transición suave
-        const btnIds = ['btn-a', 'btn-b', 'btn-x', 'response-a', 'response-b', 'response-tie'];
-        btnIds.forEach(id => {
-            const btn = document.getElementById(id);
-            if (btn) btn.disabled = isLoading;
+    setLoading(isLoading, message = 'Cargando audios...', options = {}) {
+        // Unificar: permite targetear contenedor y controles específicos
+        const defaultIds = ['btn-a', 'btn-b', 'btn-x', 'response-a', 'response-b', 'response-tie'];
+        const disableIds = Array.isArray(options.disableIds) ? options.disableIds : defaultIds;
+        const hideIds = Array.isArray(options.hideIds) ? options.hideIds : [];
+        const container = options.container instanceof HTMLElement ? options.container : this.getButtonsContainer();
+
+        // Deshabilitar controles solicitados
+        disableIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = isLoading;
         });
 
-        const container = this.getButtonsContainer();
+        // Ocultar/mostrar elementos solicitados (sin romper layout)
+        hideIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.visibility = isLoading ? 'hidden' : '';
+        });
 
         // Crear el overlay si no existe
-        if (!this.loadingOverlayEl) {
+    if (!this.loadingOverlayEl) {
             const pos = window.getComputedStyle(container).position;
             if (pos === 'static' || !pos) container.style.position = 'relative';
 
             const overlay = document.createElement('div');
             overlay.id = 'audio-loading-overlay';
-            overlay.style.position = 'absolute';
-            overlay.style.inset = '0';
-            overlay.style.display = 'none';
-            overlay.style.alignItems = 'center';
-            overlay.style.justifyContent = 'center';
-            overlay.style.background = 'rgba(255,255,255,0.7)';
-            overlay.style.backdropFilter = 'blur(1px)';
-            overlay.style.borderRadius = '8px';
-            overlay.style.zIndex = '10';
-            overlay.style.userSelect = 'none';
-            overlay.style.pointerEvents = 'auto'; // bloquea clics a los botones
-            overlay.style.opacity = '0';
-            overlay.style.transform = 'scale(0.98)';
-            overlay.style.transition = 'opacity 150ms ease, transform 150ms ease';
+            overlay.className = 'audio-loading-overlay';
 
             const label = document.createElement('div');
             label.id = 'audio-loading-label';
             label.textContent = message;
-            label.style.fontSize = '0.95rem';
-            label.style.color = '#333';
-            label.style.fontWeight = '500';
             overlay.appendChild(label);
 
             container.appendChild(overlay);
             this.loadingOverlayEl = overlay;
             this.loadingOverlayLabel = label;
+        } else if (this.loadingOverlayEl.parentElement !== container) {
+            // Mover overlay si el contenedor cambió
+            const pos = window.getComputedStyle(container).position;
+            if (pos === 'static' || !pos) container.style.position = 'relative';
+            this.loadingOverlayEl.parentElement.removeChild(this.loadingOverlayEl);
+            container.appendChild(this.loadingOverlayEl);
         }
 
         // Actualiza el mensaje si cambia
@@ -79,33 +78,11 @@ class ABXAudioController {
             this.loadingOverlayLabel.textContent = message;
         }
 
-        // Transiciones: fade-in/fade-out con display controlado
-        if (isLoading) {
-            if (this.loadingOverlayEl.style.display !== 'flex') {
-                this.loadingOverlayEl.style.display = 'flex';
-                this.loadingOverlayEl.style.pointerEvents = 'auto';
-                // forzar reflow antes de animar
-                requestAnimationFrame(() => {
-                    this.loadingOverlayEl.style.opacity = '1';
-                    this.loadingOverlayEl.style.transform = 'scale(1)';
-                });
-            } else {
-                this.loadingOverlayEl.style.pointerEvents = 'auto';
-                this.loadingOverlayEl.style.opacity = '1';
-                this.loadingOverlayEl.style.transform = 'scale(1)';
-            }
+        // Transiciones controladas por CSS mediante la clase .show
+    if (isLoading) {
+            this.loadingOverlayEl.classList.add('show');
         } else {
-            // Liberar clics inmediatamente
-            this.loadingOverlayEl.style.pointerEvents = 'none';
-            this.loadingOverlayEl.style.opacity = '0';
-            this.loadingOverlayEl.style.transform = 'scale(0.98)';
-            // Fallback de ocultado tras la transición (150ms + margen)
-            const overlayRef = this.loadingOverlayEl;
-            setTimeout(() => {
-                if (overlayRef && overlayRef.style.opacity === '0') {
-                    overlayRef.style.display = 'none';
-                }
-            }, 200);
+            this.loadingOverlayEl.classList.remove('show');
         }
     }
 
@@ -558,10 +535,34 @@ document.addEventListener('DOMContentLoaded', async function() {
         abxController = new ABXAudioController();
         window.abxController = abxController;
 
+        // Oculta el botón de calibración mientras carga el buffer por primera vez
+        const calibrationBtn = document.getElementById('play-calibration');
+        if (calibrationBtn) {
+            abxController.setLoading(true, 'Cargando audios...', {
+                container: calibrationBtn.parentElement || document.body,
+                disableIds: [],
+                hideIds: ['play-calibration']
+            });
+        }
+
         loadCalibrationBuffer().then(() => {
             console.log("Audio de calibración precargado.");
+            if (calibrationBtn) {
+                abxController.setLoading(false, undefined, {
+                    container: calibrationBtn.parentElement || document.body,
+                    disableIds: [],
+                    hideIds: ['play-calibration']
+                });
+            }
         }).catch(err => {
             console.error("Error al precargar el audio de calibración:", err);
+            if (calibrationBtn) {
+                abxController.setLoading(false, undefined, {
+                    container: calibrationBtn.parentElement || document.body,
+                    disableIds: [],
+                    hideIds: ['play-calibration']
+                });
+            }
         });
     }
 
@@ -587,6 +588,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (!calibrationContext) {
                     calibrationContext = new (window.AudioContext || window.webkitAudioContext)();
                 }
+                // Ocultar el botón mientras se prepara el audio
+                abxController.setLoading(true, 'Cargando audios...', {
+                    container: playCalibrationBtn.parentElement || document.body,
+                    disableIds: [],
+                    hideIds: ['play-calibration']
+                });
 
                 const buffer = await loadCalibrationBuffer();
                 calibrationSource = calibrationContext.createBufferSource();
@@ -594,6 +601,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                 calibrationSource.connect(calibrationContext.destination);
                 calibrationSource.start(0);
                 isPlaying = true;
+
+                // Mostrar nuevamente el botón durante la reproducción
+                abxController.setLoading(false, undefined, {
+                    container: playCalibrationBtn.parentElement || document.body,
+                    disableIds: [],
+                    hideIds: ['play-calibration']
+                });
 
                 calibrationSource.onended = function() {
                     playCalibrationBtn.textContent = 'Reproducir Audio de Calibración';
@@ -603,6 +617,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 console.error('Error playing calibration:', error);
                 playCalibrationBtn.textContent = 'Reproducir Audio de Calibración';
                 isPlaying = false;
+                abxController.setLoading(false, undefined, {
+                    container: playCalibrationBtn.parentElement || document.body,
+                    disableIds: [],
+                    hideIds: ['play-calibration']
+                });
             }
         }
 
