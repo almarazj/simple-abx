@@ -16,3 +16,28 @@ def get_signed_audio_url(filename: str):
         method="GET",
     )
     return {"url": url}
+
+
+@storage_router.post("/move_results")
+def move_results(
+    document_id: str
+): 
+    from google.cloud import firestore
+    
+    client = firestore.Client()
+    source_collection = client.collection("test-results-dev")
+    destination_collection = client.collection("test-results-3.0")
+    
+    doc_ref = source_collection.document(document_id)
+    doc = doc_ref.get()
+    
+    if not doc.exists:
+        return {"error": "Document not found"}, 404
+    
+    data = doc.to_dict()
+    
+    destination_ref = destination_collection.document(document_id)
+    destination_ref.set(data)
+    
+    print(f"Document {document_id} moved successfully.")
+    return {"message": f"Document {document_id} moved successfully."}
