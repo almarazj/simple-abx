@@ -19,7 +19,6 @@ def create_app() -> FastAPI:
         redoc_url="/redoc",
     )
     
-    
     setup_logging()    
     logger = get_app_logger()
     logger.info("Initializing application...")

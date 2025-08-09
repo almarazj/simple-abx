@@ -1,4 +1,3 @@
-import os
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
@@ -26,14 +25,12 @@ class ProductionConfig(Settings):
     LOG_LEVEL: str = "WARNING"
     FIRESTORE_COLLECTION: str = "test-results-3.0"
 
-def get_settings() -> Settings:
+def get_settings(APP_ENV: str) -> Settings:
 
-    env = os.getenv("APP_ENV", "dev").lower()
-
-    if env == "prod":
+    if APP_ENV == "prod":
         return ProductionConfig()
-    else:
+    elif APP_ENV == "dev":
         return DevelopmentConfig()
 
 # Instancia global de configuración
-settings = get_settings()
+settings = get_settings(APP_ENV="dev")
