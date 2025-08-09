@@ -33,4 +33,4 @@ def get_settings(APP_ENV: str) -> Settings:
         return DevelopmentConfig()
 
 # Instancia global de configuración
-settings = get_settings(APP_ENV="dev")
+settings = get_settings(APP_ENV="prod")
